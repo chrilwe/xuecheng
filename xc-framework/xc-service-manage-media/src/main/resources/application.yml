@@ -1,0 +1,36 @@
+server:
+  port: 31200
+spring: 
+  application:
+    name: xc-service-manage-media
+  data:
+    mongodb:
+      uri: mongodb://admin:123@localhost:27017
+      database: xc_cms
+  activemq: 
+    user: admin
+    password: admin
+    broker-url: tcp://127.0.0.1:61616
+
+MQ: 
+    queueName: QUEUE
+    topicName1: TOPIC_MEDIA
+    topicName2: TOPIC_DOCS
+
+xc-service-manage-media: 
+  media-location: F:/develop/video/
+
+eureka: 
+  client: #客户端注册进eureka服务列表内
+    service-url: 
+      defaultZone: http://localhost:50101/eureka/
+       #defaultZone: http://eureka7001.com:7001/eureka/,http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/      
+  instance:
+    instance-id: xc-service-manage-media
+    prefer-ip-address: true     #访问路径可以显示IP地址     
+
+info: 
+  app.name: xc-service-manage-media
+  company.name: www.xuecheng.com
+  build.artifactId: $project.artifactId$
+  build.version: $project.version$
