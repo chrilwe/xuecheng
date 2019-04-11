@@ -1,5 +1,5 @@
 server:
-  port: 31002
+  port: 31450
 spring:
   application:
     name: xc-service-manage-media-processor
@@ -7,15 +7,12 @@ spring:
     mongodb:
       uri: mongodb://admin:123@localhost:27017
       database: xc_cms
-  activemq:
-    user: admin
-    password: admin
-    broker-url: tcp://127.0.0.1:61616
-    
-MQ: 
-    queueName: QUEUE
-    topicName1: TOPIC_MEDIA
-    topicName2: TOPIC_DOCS
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
 
 xc-service-manage-media-processor: 
   processor-media-location: F:/develop/video/video/

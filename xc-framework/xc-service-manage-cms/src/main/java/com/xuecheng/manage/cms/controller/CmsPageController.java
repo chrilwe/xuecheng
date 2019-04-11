@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,7 +36,7 @@ import com.xuecheng.manage.cms.service.CmsPageService;
 import com.xuecheng.manage.cms.service.CmsSiteService;
 import com.xuecheng.manage.cms.service.CmsTemplateService;
 
-@Controller
+@RestController
 @RequestMapping("/cms")
 public class CmsPageController implements CmsPageControllerApi {
 	
@@ -54,7 +55,6 @@ public class CmsPageController implements CmsPageControllerApi {
 	 * @param size:页面大小
 	 */
 	@GetMapping("/list/{page}/{size}")
-	@ResponseBody
 	public QueryResponseResult findList(@PathVariable("page")int page, @PathVariable("size")int size, QueryPageRequest queryPageRequest) {
 		QueryResponseResult result = null;
 		try {
@@ -70,7 +70,6 @@ public class CmsPageController implements CmsPageControllerApi {
 	 * cmsPage添加
 	 */
 	@RequestMapping("/add")
-	@ResponseBody
 	public CmsPageResult add(@RequestBody CmsPage cmsPage) {
 		
 		return cmsPageService.add(cmsPage);
@@ -80,7 +79,6 @@ public class CmsPageController implements CmsPageControllerApi {
 	 * 根据页面id查询
 	 */
 	@GetMapping("/get/{id}")
-	@ResponseBody
 	public CmsPage findById(@PathVariable("id")String id) {
 		
 		return cmsPageService.findById(id);
@@ -102,7 +100,6 @@ public class CmsPageController implements CmsPageControllerApi {
 	 * 发布静态页面
 	 */
 	@GetMapping("/createhtml/{id}")
-	@ResponseBody
 	public CmsPageResult createHtml(@PathVariable("id")String id) {
 		//生成页面
 		String pageHtml = cmsPageService.getPageHtml(id);
@@ -116,7 +113,6 @@ public class CmsPageController implements CmsPageControllerApi {
 	 * @param modelId : cms_config的id
 	 */
 	@GetMapping("/getModel/{modelId}")
-	@ResponseBody
 	public CmsConfig getModel(@PathVariable("modelId") String modelId) {
 		return cmsConfigService.findById(modelId);
 	}
@@ -131,7 +127,6 @@ public class CmsPageController implements CmsPageControllerApi {
 	 */
 	@Override
 	@GetMapping("/template/save/{siteId}")
-	@ResponseBody
 	public String uploadTemplate(@RequestParam("templateName")String templateName,
 			@PathVariable("siteId")String siteId,
 			@RequestParam(name="templateParameter",defaultValue="")String templateParameter) {
@@ -163,7 +158,6 @@ public class CmsPageController implements CmsPageControllerApi {
 	 */
 	@Override
 	@GetMapping("/site/list")
-	@ResponseBody
 	public List<CmsSite> findAllSite() {
 		
 		return cmsSiteService.findAll();
@@ -174,10 +168,29 @@ public class CmsPageController implements CmsPageControllerApi {
 	 */
 	@Override
 	@GetMapping("/template/list")
-	@ResponseBody
 	public List<CmsTemplate> findAllTemplate() {
 		
 		return cmsTemplateService.findAll();
+	}
+	
+	/**
+	 * 添加页面的数据模型
+	 */
+	@Override
+	@PostMapping("/cmsConfig/add")
+	public CmsPageResult addCmsConfig(CmsConfig cmsConfig) {
+		CmsPageResult result = cmsConfigService.addCmsConfig(cmsConfig);
+		return result;
+	}
+	
+	/**
+	 * 查询所有的数据模型
+	 */
+	@Override
+	@GetMapping("/cmsConfig/findAll")
+	public List<CmsConfig> findCmsConfigs() {
+		List<CmsConfig> cmsConfigs = cmsConfigService.findCmsConfigs();
+		return cmsConfigs;
 	}
 	
 }

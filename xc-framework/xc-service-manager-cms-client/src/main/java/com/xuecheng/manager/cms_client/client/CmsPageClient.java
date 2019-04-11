@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.xuecheng.framework.common.client.XcServiceList;
 import com.xuecheng.framework.domain.cms.CmsPage;
 
-@FeignClient(value=XcServiceList.XC_SERVICE_MANAGE_CMS)
+@FeignClient(XcServiceList.XC_SERVICE_MANAGE_CMS)
 public interface CmsPageClient {
 	
 	@GetMapping("/cms/get/{id}")

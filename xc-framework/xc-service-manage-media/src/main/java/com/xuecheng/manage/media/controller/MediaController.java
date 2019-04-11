@@ -7,11 +7,10 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import javax.jms.Topic;
-
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,21 +18,23 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.xuecheng.framework.api.MediaControllerApi;
 import com.xuecheng.framework.common.model.response.CommonCode;
+import com.xuecheng.framework.common.model.response.QueryResponseResult;
 import com.xuecheng.framework.common.model.response.ResponseResult;
+import com.xuecheng.framework.domain.course.TeachplanMedia;
+import com.xuecheng.framework.domain.media.request.QueryMediaFileRequest;
 import com.xuecheng.framework.domain.media.response.CheckChunkResult;
 import com.xuecheng.framework.domain.media.response.MediaCode;
+import com.xuecheng.manage.media.config.RabbitMqConfig;
 import com.xuecheng.manage.media.service.MediaService;
 
 @RestController
-@RequestMapping("/media/upload")
+@RequestMapping("/media")
 public class MediaController implements MediaControllerApi {
 	
 	@Autowired
 	private MediaService mediaService;
 	@Autowired
-	private JmsTemplate jmsTemplate;
-	@Autowired
-	private Topic topic;
+	private RabbitTemplate rabbitTemplate;
 	
 	/**
 	 * 文件上传注册(检查是否存在文件目录，不存在就创建)
@@ -87,17 +88,49 @@ public class MediaController implements MediaControllerApi {
 	public ResponseResult mergeChunkFile(String fileMd5, 
 			String fileName, String fileSize, String mimeType,
 			String fileExt) {
-		ResponseResult result = mediaService.mergeChunkFile(fileMd5, fileName, fileSize, mimeType, fileExt);
+		String userId = "";
+		ResponseResult result = mediaService.mergeChunkFile(fileMd5, fileName, fileSize, mimeType, fileExt, userId);
 		try {
 			if(result.isSuccess()) {
 				//发送消息到mq
-				jmsTemplate.convertAndSend(topic, fileMd5);
+				rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE_TOPICS_INFORM, "inform.#.media.#", fileMd5);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return result;
 		
+	}
+	
+	/**
+	 * 条件分页查询媒体文件
+	 */
+	@Override
+	@GetMapping("/list/{page}/{size}")
+	public QueryResponseResult findMediaFileList(@PathVariable("page")int page, 
+			@PathVariable("size")int size, QueryMediaFileRequest queryMediaFileRequest) {
+		String userId = "";
+		return mediaService.findMediaFileList(page, size, queryMediaFileRequest, userId);
+	}
+	
+	/**
+	 * 删除媒体文件
+	 */
+	@Override
+	@GetMapping("/delete/{fileId}")
+	public ResponseResult deleteMediaFileByFileId(@PathVariable("fileId")String fileId) {
+		String userId = "";
+		return mediaService.deleteMediaFileByFileId(fileId, userId);
+	}
+	
+	/**
+	 * 人工处理未自动处理的视频
+	 */
+	@Override
+	@GetMapping("/process_video/{fileMd5}")
+	public ResponseResult processVideoFile(@PathVariable("fileMd5")String fileMd5) {
+		
+		return mediaService.processVideo(fileMd5);
 	}
 	
 }

@@ -13,18 +13,23 @@ import com.alibaba.druid.util.StringUtils;
 import com.xuecheng.framework.common.exception.ExceptionCast;
 import com.xuecheng.framework.common.model.response.CommonCode;
 import com.xuecheng.framework.common.model.response.ResponseResult;
+import com.xuecheng.framework.domain.cms.response.CmsPageResult;
 import com.xuecheng.framework.domain.course.CourseBase;
 import com.xuecheng.framework.domain.course.CoursePic;
 import com.xuecheng.framework.domain.course.Teachplan;
+import com.xuecheng.framework.domain.course.TeachplanMedia;
+import com.xuecheng.framework.domain.course.ext.CourseInfo;
 import com.xuecheng.framework.domain.course.ext.TeachplanNode;
 import com.xuecheng.framework.domain.course.response.AddCourseResult;
 import com.xuecheng.framework.domain.course.response.CourseCode;
 import com.xuecheng.framework.domain.filesystem.FileSystem;
 import com.xuecheng.framework.domain.filesystem.response.UploadFileResult;
+import com.xuecheng.manage.course.client.CmsPageClient;
 import com.xuecheng.manage.course.client.FileSystemClient;
 import com.xuecheng.manage.course.mapper.CourseBaseMapper;
 import com.xuecheng.manage.course.mapper.CoursePicMapper;
 import com.xuecheng.manage.course.mapper.TeachplanMapper;
+import com.xuecheng.manage.course.mapper.TeachplanMediaMapper;
 import com.xuecheng.manage.course.service.XcCourseService;
 
 @Service
@@ -38,6 +43,10 @@ public class XcCourseServiceImpl implements XcCourseService {
 	private FileSystemClient fileSystemClient;
 	@Autowired
 	private CoursePicMapper coursePicMapper;
+	@Autowired
+	private TeachplanMediaMapper teachplanMediaMapper;
+	@Autowired
+	private CmsPageClient cmsPageClient;
 	
 	@Value("${xuecheng.fastdfs.tracker_server}")
 	private String trackerServer;//文件服务器URI
@@ -157,5 +166,56 @@ public class XcCourseServiceImpl implements XcCourseService {
 		coursePic.setPic(trackerServer + "/" + filePath);
 		coursePicMapper.addCoursePic(coursePic);
 		return new UploadFileResult(CommonCode.SUCCESS,result.getFileSystem());
+	}
+
+	@Override
+	public List<CourseInfo> findCourseListByUserId(int page, int size, String userId) {
+		if(page <= 0) {
+			page = 1;
+		}
+		int begin = (page - 1) * size;
+		List<CourseInfo> courseInfos = courseBaseMapper.findByUserId(begin, size, userId);
+		return courseInfos;
+	}
+	
+	@Override
+	public ResponseResult saveMedia(TeachplanMedia teachplanMedia) {
+		if(teachplanMedia == null) {
+			ExceptionCast.cast(CommonCode.INVALID_PARAM);
+		}
+		
+		//只允许课程计划的叶子节点关联媒体资源
+		//根据课程计划id查询课程计划
+		String teachplanId = teachplanMedia.getTeachplanId();
+		Teachplan teachplan = teachplanMapper.findById(teachplanId);
+		String grade = teachplan.getGrade();
+		if(StringUtils.isEmpty(grade) || !grade.equals("3")) {
+			ExceptionCast.cast(CourseCode.COURSE_TEACHPLAN_ISPARENT);
+		}
+		
+		//判断是否之前已经有关联的媒体资源了,存在更新信息，不存在插入信息
+		//根据teachplanid查询
+		TeachplanMedia tm = teachplanMediaMapper.findByTeachplanId(teachplanId);
+		if(tm != null) {
+			teachplanMediaMapper.updateTeachplanMedia(teachplanMedia);
+		} else {
+			teachplanMediaMapper.addTeachplanMedia(teachplanMedia);
+		}
+		return new ResponseResult(CommonCode.SUCCESS);
+	}
+
+	@Override
+	public CmsPageResult createCourseHtml(String courseId) {
+		//1.调用cms服务，生成html静态文件，并且推送到nginx
+		CmsPageResult result = cmsPageClient.createHtml(courseId);
+		if(!result.isSuccess()) {
+			return result;
+		}
+		//2.修改课程上线状态
+		//预发送消息,消息状态为等待发送
+		//业务逻辑
+		//确认发送消息，消息状态为发送中
+		//3.调用search服务,将课程信息添加到es库中
+		return null;
 	}
 }

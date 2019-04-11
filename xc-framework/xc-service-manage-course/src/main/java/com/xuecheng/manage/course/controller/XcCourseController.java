@@ -1,5 +1,7 @@
 package com.xuecheng.manage.course.controller;
 
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,8 +17,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.xuecheng.framework.api.XcCourseControllerApi;
 import com.xuecheng.framework.common.exception.ExceptionCast;
 import com.xuecheng.framework.common.model.response.ResponseResult;
+import com.xuecheng.framework.domain.cms.response.CmsPageResult;
 import com.xuecheng.framework.domain.course.CourseBase;
 import com.xuecheng.framework.domain.course.Teachplan;
+import com.xuecheng.framework.domain.course.TeachplanMedia;
+import com.xuecheng.framework.domain.course.ext.CourseInfo;
 import com.xuecheng.framework.domain.course.ext.TeachplanNode;
 import com.xuecheng.framework.domain.course.response.AddCourseResult;
 import com.xuecheng.framework.domain.course.response.CourseCode;
@@ -91,5 +96,37 @@ public class XcCourseController implements XcCourseControllerApi {
 	public UploadFileResult upLoadCoursePic(MultipartFile file, String courseId) {
 		UploadFileResult result = xcCourseService.uploadCoursePic(file, courseId);
 		return result;
+	}
+	
+	/**
+	 * 查询课程列表
+	 */
+	@Override
+	@GetMapping("/list/{page}/{size}")
+	public List<CourseInfo> findCourseListByUserId(@PathVariable("page")int page, 
+			@PathVariable("size")int size, 
+			String userId) {
+	
+		return xcCourseService.findCourseListByUserId(page, size, userId);
+	}
+	
+	/**
+	 * 课程计划关联媒体文件
+	 */
+	@Override
+	@PostMapping("/savemedia")
+	public ResponseResult saveMedia(TeachplanMedia teachplanMedia) {
+		
+		return xcCourseService.saveMedia(teachplanMedia);
+	}
+	
+	/**
+	 * 课程发布
+	 */
+	@Override
+	@GetMapping("/createHtml/{courseId}")
+	public CmsPageResult createCourseHtml(@PathVariable("courseId")String courseId) {
+		
+		return null;
 	}
 }

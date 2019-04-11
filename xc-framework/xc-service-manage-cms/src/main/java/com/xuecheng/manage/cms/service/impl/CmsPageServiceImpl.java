@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.jms.Topic;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -27,7 +27,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jms.core.JmsMessagingTemplate;
 import org.springframework.messaging.MessagingException;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
@@ -47,6 +46,7 @@ import com.xuecheng.framework.domain.cms.CmsPage;
 import com.xuecheng.framework.domain.cms.CmsTemplate;
 import com.xuecheng.framework.domain.cms.response.CmsCode;
 import com.xuecheng.framework.domain.cms.response.CmsPageResult;
+import com.xuecheng.manage.cms.config.RabbitMqConfig;
 import com.xuecheng.manage.cms.dao.CmsPageRepository;
 import com.xuecheng.manage.cms.dao.CmsTemplateRepository;
 import com.xuecheng.manage.cms.service.CmsPageService;
@@ -69,9 +69,8 @@ public class CmsPageServiceImpl implements CmsPageService {
 	@Autowired
 	private GridFsTemplate gridFsTemplate;
 	@Autowired
-	private JmsMessagingTemplate jms;
-	@Autowired
-	private Topic topic;
+	private RabbitTemplate rabbitTemplate;
+	
 
 	@Override
 	public QueryResponseResult findList(int page, int size, QueryPageRequest queryPageRequest) {
@@ -295,11 +294,13 @@ public class CmsPageServiceImpl implements CmsPageService {
 		cmsPageRepository.save(page);
 		
 		//将pageId发送到消息队列
-		try {
-			jms.convertAndSend(topic, pageId);
-		} catch (MessagingException e) {
-			e.printStackTrace();
+		String type = "";
+		if(page.getPageType().equals("0")) {
+			type = "protal";//门户页面内容
+		} else if(page.getPageType().equals("1")) {
+			type = "course";//课程详情页
 		}
+		rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE_TOPICS_INFORM, "inform.#."+type+".#", pageId);
 		
 		return new CmsPageResult(CommonCode.SUCCESS, cmsPage);
 	}

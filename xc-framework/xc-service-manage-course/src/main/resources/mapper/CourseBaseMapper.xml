@@ -11,7 +11,13 @@
 		resultType="com.xuecheng.framework.domain.course.CourseBase">
 		select
 		id,name,users,mt,grade,studymodel,teachmode,description,st,status,company_id
-		as companyId,user_id as userId from teachplan where
+		as companyId,user_id as userId from course_base where
 		courseid=#{courseId}
+	</select>
+
+	<select id="findByUserId" parameterType="String"
+		resultType="com.xuecheng.framework.domain.course.ext.CourseInfo">
+		select a.id,a.name,b.pic from course_base a left join
+		course_pic b on a.id = b.courseid where user_id=#{userId} limit #{begin},#{size}
 	</select>
 </mapper>

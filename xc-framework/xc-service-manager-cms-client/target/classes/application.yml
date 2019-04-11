@@ -7,15 +7,13 @@ spring:
     mongodb:
       uri: mongodb://admin:123@localhost:27017
       database: xc_cms
-  activemq:
-    user: admin
-    password: admin
-    broker-url: tcp://127.0.0.1:61616
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
     
-MQ: 
-    queueName: QUEUE
-    topicName: TOPIC
-
 eureka: 
   client: #客户端注册进eureka服务列表内
     service-url: 

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xuecheng.manage.course.mapper.TeachplanMediaMapper">
+	<insert id="addTeachplanMedia" parameterType="com.xuecheng.framework.domain.course.TeachplanMedia">
+		insert into
+		teachplan_media(teachplan_id,media_id,media_fileoriginalname,media_url,courseid)
+		values(#{teachplanId},#{mediaId},#{mediaFileOriginalName},#{mediaUrl},#{courseId})
+	</insert>
+
+	<select id="findByTeachplanId" parameterType="String"
+		resultType="com.xuecheng.framework.domain.course.TeachplanMedia">
+		select teachplan_id as teachplanId,media_id as
+		mediaId,media_fileoriginalname as mediaFileOriginalName,media_url as
+		mediaUrl,courseid as courseId from teachplan_media where
+		teachplan_id=#{teachplanId}
+	</select>
+</mapper>

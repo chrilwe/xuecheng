@@ -1,16 +1,11 @@
 package com.xuecheng.service.manage.media.processor.service.impl;
 
-import java.io.File;
 import java.util.List;
 import java.util.Optional;
-
-import javax.jms.Message;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jms.annotation.JmsListener;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 
 import com.xuecheng.framework.domain.media.MediaFile;
@@ -23,20 +18,15 @@ import com.xuecheng.service.manage.media.processor.service.MediaProcessorService
 public class MediaProcessorServiceImpl implements MediaProcessorService {
 	
 	@Autowired
-	private JmsTemplate jmsTemplate;
-	@Autowired
 	private MediaFileRepository mediaFileRepository;
 	
 	@Value("${xc-service-manage-media-processor.processor-media-location}")
     private String m3u8floder_path;
     @Value("${{xc-service-manage-media-processor.ffmpeg-location}")
     private String ffmpeg_path;
-
+	
 	@Override
-	@JmsListener(destination = "TOPIC_MEDIA", containerFactory = "jmsListenerContainerTopic")
-	public void processMedia() {
-		//监听消息，获取处理视频文件的fieMd5值
-		Message fileMd5 = jmsTemplate.receive();
+	public void processMedia(String fileMd5) {
 		//根据id查询MediaFile
 		Optional<MediaFile> optional = mediaFileRepository.findById(fileMd5.toString());
 		if(optional.isPresent()) {
@@ -73,5 +63,6 @@ public class MediaProcessorServiceImpl implements MediaProcessorService {
 			mediaFile.setFileUrl(m3u8floder_path + fileMd5 + ".m3u8");
 			mediaFileRepository.save(mediaFile);
 		}
+
 	}
 }

@@ -1,5 +1,5 @@
 package com.xuecheng.manager.cms_client.service;
 
 public interface CmsManagerClientService {
-	public void receiveActiveMQMessage(String message);//监听消息
+	public boolean generHtml(String pageId);//生成静态页面，推送到nginx
 }

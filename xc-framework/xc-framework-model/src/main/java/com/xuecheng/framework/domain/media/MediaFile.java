@@ -43,9 +43,19 @@ public class MediaFile {
     private String processStatus;
     //hls处理
     private MediaFileProcess_m3u8 mediaFileProcess_m3u8;
+    //userId
+    private String userId;
 
     //tag标签用于查询
     private String tag;
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
 
 	public String getFileId() {
 		return fileId;
@@ -156,9 +166,8 @@ public class MediaFile {
 		return "MediaFile [fileId=" + fileId + ", fileName=" + fileName + ", fileOriginalName=" + fileOriginalName
 				+ ", filePath=" + filePath + ", fileUrl=" + fileUrl + ", fileType=" + fileType + ", mimeType="
 				+ mimeType + ", fileSize=" + fileSize + ", fileStatus=" + fileStatus + ", uploadTime=" + uploadTime
-				+ ", processStatus=" + processStatus + ", mediaFileProcess_m3u8=" + mediaFileProcess_m3u8 + ", tag="
-				+ tag + "]";
+				+ ", processStatus=" + processStatus + ", mediaFileProcess_m3u8=" + mediaFileProcess_m3u8 + ", userId="
+				+ userId + ", tag=" + tag + "]";
 	}
 
-    
 }

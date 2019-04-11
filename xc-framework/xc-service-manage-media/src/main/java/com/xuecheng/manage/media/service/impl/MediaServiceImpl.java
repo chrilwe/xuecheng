@@ -16,20 +16,33 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.xuecheng.framework.common.exception.ExceptionCast;
 import com.xuecheng.framework.common.model.response.CommonCode;
+import com.xuecheng.framework.common.model.response.QueryResponseResult;
+import com.xuecheng.framework.common.model.response.QueryResult;
 import com.xuecheng.framework.common.model.response.ResponseResult;
 import com.xuecheng.framework.common.model.response.ResultCode;
+import com.xuecheng.framework.domain.course.TeachplanMedia;
 import com.xuecheng.framework.domain.media.MediaFile;
+import com.xuecheng.framework.domain.media.request.QueryMediaFileRequest;
 import com.xuecheng.framework.domain.media.response.CheckChunkResult;
 import com.xuecheng.framework.domain.media.response.MediaCode;
+import com.xuecheng.framework.domain.ucenter.response.AuthCode;
+import com.xuecheng.manage.media.client.MediaProcessorClient;
 import com.xuecheng.manage.media.dao.MediaRepository;
 import com.xuecheng.manage.media.service.MediaService;
 
@@ -38,6 +51,8 @@ public class MediaServiceImpl implements MediaService {
 
 	@Autowired
 	private MediaRepository mediaRepository;
+	@Autowired
+	private MediaProcessorClient mediaProcessorClient;
 
 	@Value("${xc-service-manage-media.media-location}")
 	private String mediaLocation;
@@ -185,7 +200,7 @@ public class MediaServiceImpl implements MediaService {
 
 	@Override
 	public ResponseResult mergeChunkFile(String fileMd5, String fileName, String fileSize, String mimeType,
-			String fileExt) {
+			String fileExt, String userId) {
 		//获取块文件地址
 		String chunkFileFloder = this.getChunkFileFloder(fileMd5);
 		//将块文件升序排序
@@ -222,6 +237,7 @@ public class MediaServiceImpl implements MediaService {
 		mediaFile.setMimeType(mimeType);
 		mediaFile.setUploadTime(new Date());
 		mediaFile.setFileType(fileExt);
+		mediaFile.setUserId(userId);
 		
 		MediaFile save = mediaRepository.save(mediaFile);
 		return new ResponseResult(CommonCode.SUCCESS);
@@ -304,5 +320,68 @@ public class MediaServiceImpl implements MediaService {
 			}
 		}
 		return true;
+	}
+	
+	@Override
+	public QueryResponseResult findMediaFileList(int page, int size, 
+			QueryMediaFileRequest queryMediaFileRequest, String userId) {
+		if(StringUtils.isEmpty(userId)) {
+			ExceptionCast.cast(AuthCode.AUTH_ACCOUNT_NOTEXISTS);//请认证
+		}
+		MediaFile mediaFile = new MediaFile();
+		//校验参数,参数为空，查询条件就查询当前页的全部
+		if(queryMediaFileRequest == null) {
+			queryMediaFileRequest = new QueryMediaFileRequest();
+		}
+		
+		if(StringUtils.isNotEmpty(queryMediaFileRequest.getFileOriginalName())) {
+			mediaFile.setFileOriginalName(queryMediaFileRequest.getFileOriginalName());
+		}
+		
+		if(StringUtils.isNotEmpty(queryMediaFileRequest.getProcessStatus())) {
+			mediaFile.setProcessStatus(queryMediaFileRequest.getProcessStatus());
+		}
+		
+		if(StringUtils.isNotEmpty(queryMediaFileRequest.getTag())) {
+			mediaFile.setTag(queryMediaFileRequest.getTag());
+		}
+		
+		//查询条件字段设置
+		ExampleMatcher matcher = ExampleMatcher.matching()
+				.withMatcher("fileOriginalName", ExampleMatcher.GenericPropertyMatchers.contains())
+				.withMatcher("processStatus", ExampleMatcher.GenericPropertyMatchers.contains())
+				.withMatcher("tag", ExampleMatcher.GenericPropertyMatchers.contains())
+				.withMatcher("userId", ExampleMatcher.GenericPropertyMatchers.contains());
+		
+		Example<MediaFile> example = Example.of(mediaFile, matcher);
+		
+		//分页条件
+		if(page <= 0) {
+			page = 1;
+		}
+		page = page -1;
+		
+		Pageable pageable = new QPageRequest(page,size);
+		Page<MediaFile> pageList = mediaRepository.findAll(example, pageable);
+		QueryResult queryResult = new QueryResult();
+		queryResult.setList(pageList.getContent());
+		queryResult.setTotal(pageList.getTotalElements());
+		QueryResponseResult result = new QueryResponseResult(CommonCode.SUCCESS,queryResult );
+		return result;
+	}
+
+	@Override
+	public ResponseResult deleteMediaFileByFileId(String fileMd5, String userId) {
+		MediaFile mediaFile = new MediaFile();
+		mediaFile.setFileId(fileMd5);
+		mediaFile.setUserId(userId);
+		mediaRepository.delete(mediaFile);
+		return new ResponseResult(CommonCode.SUCCESS);
+	}
+
+	@Override
+	public ResponseResult processVideo(String fileMd5) {
+		ResponseResult result = mediaProcessorClient.processVideo(fileMd5);
+		return result;
 	}
 }

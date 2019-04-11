@@ -2,8 +2,11 @@ package com.xuecheng.framework.api;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.PathVariable;
+
 import com.xuecheng.framework.common.model.request.QueryPageRequest;
 import com.xuecheng.framework.common.model.response.QueryResponseResult;
+import com.xuecheng.framework.domain.cms.CmsConfig;
 import com.xuecheng.framework.domain.cms.CmsPage;
 import com.xuecheng.framework.domain.cms.CmsSite;
 import com.xuecheng.framework.domain.cms.CmsTemplate;
@@ -30,4 +33,12 @@ public interface CmsPageControllerApi {
 	public List<CmsSite> findAllSite();
 	//查询所有页面模板
 	public List<CmsTemplate> findAllTemplate();
+	//根据cmsConfig id查询页面的数据模型
+	public CmsConfig getModel(String modelId);
+	//新增页面的数据模型
+	public CmsPageResult addCmsConfig(CmsConfig cmsConfig);
+	//查询页面数据模型cmsConfig
+	public List<CmsConfig> findCmsConfigs();
+	//发布静态页面
+	public CmsPageResult createHtml(String id);
 }

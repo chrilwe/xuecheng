@@ -47,4 +47,9 @@
 		select id,pname,parentid,grade,ptype,description,timelength,
 		courseid,orderby,status,trylearn from teachplan where parentid=#{parentId}
 	</select>
+	
+	<select id="findById" parameterType="String" resultType="com.xuecheng.framework.domain.course.Teachplan">
+		select id,pname,parentid,grade,ptype,description,timelength,
+		courseid,orderby,status,trylearn from teachplan where id=#{id}
+	</select>
 </mapper>

@@ -7,6 +7,7 @@ public class XcServiceList {
     public static final String XC_SERVICE_SEARCH = "xc-service-search";
     public static final String XC_SERVICE_MANAGE_COURSE = "xc-service-manage-course";
     public static final String XC_SERVICE_MANAGE_MEDIA = "xc-service-manage-media";
+    public static final String XC_SERVICE_MANAGE_MEDIA_PROCESSOR = "xc-service-manage-media-processor";
     public static final String XC_SERVICE_MANAGE_CMS = "xc-service-manage-cms";
     public static final String XC_SERVICE_UCENTER = "xc-service-ucenter";
     public static final String XC_SERVICE_UCENTER_AUTH = "xc-service-ucenter-auth";
