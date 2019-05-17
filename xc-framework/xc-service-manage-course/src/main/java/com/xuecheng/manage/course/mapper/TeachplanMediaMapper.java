@@ -1,5 +1,7 @@
 package com.xuecheng.manage.course.mapper;
 
+import java.util.List;
+
 import com.xuecheng.framework.domain.course.TeachplanMedia;
 
 public interface TeachplanMediaMapper {
@@ -9,4 +11,6 @@ public interface TeachplanMediaMapper {
 	public TeachplanMedia findByTeachplanId(String teachplanid);
 	//更新
 	public int updateTeachplanMedia(TeachplanMedia teachplanMedia);
+	//根据课程id查询所有的TeachplanMedia
+	public List<TeachplanMedia> findListByCourseId(String courseId);
 }

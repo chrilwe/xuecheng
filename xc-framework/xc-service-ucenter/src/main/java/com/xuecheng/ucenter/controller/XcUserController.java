@@ -3,11 +3,13 @@ package com.xuecheng.ucenter.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.xuecheng.framework.api.XcUserControllerApi;
+import com.xuecheng.framework.common.model.response.ResponseResult;
 import com.xuecheng.framework.domain.ucenter.ext.XcMenuExt;
 import com.xuecheng.framework.domain.ucenter.ext.XcUserExt;
 import com.xuecheng.ucenter.service.XcUserService;
@@ -38,5 +40,22 @@ public class XcUserController implements XcUserControllerApi {
 	public XcMenuExt findXcMenuExtByUserName(@RequestParam("username") String username) {
 		XcMenuExt xcMenuExt = xcUserService.findXcMenuExtByUserName(username);
 		return xcMenuExt;
+	}
+
+	@Override
+	@GetMapping("/findbyid")
+	public XcUserExt findByUserId(String userId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	/**
+	 * 注册
+	 */
+	@Override
+	@PostMapping("/register")
+	public ResponseResult register(XcUserExt xcUserExt) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

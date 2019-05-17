@@ -21,5 +21,6 @@ public interface TeachplanMapper {
 	public Teachplan findByParentId(String parentId);
 	//根据id查询
 	public Teachplan findById(String id);
-	
+	//根据课程id查询
+	public List<Teachplan> findTeachplanByCourseId(String courseId);
 }

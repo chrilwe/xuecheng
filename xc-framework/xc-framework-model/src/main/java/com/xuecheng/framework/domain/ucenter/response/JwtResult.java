@@ -10,8 +10,6 @@ import lombok.ToString;
 /**
  * Created by mrt on 2018/5/21.
  */
-@Data
-@ToString
 @NoArgsConstructor
 public class JwtResult extends ResponseResult {
     public JwtResult(ResultCode resultCode, String jwt) {
@@ -19,4 +17,15 @@ public class JwtResult extends ResponseResult {
         this.jwt = jwt;
     }
     private String jwt;
+	public String getJwt() {
+		return jwt;
+	}
+	public void setJwt(String jwt) {
+		this.jwt = jwt;
+	}
+	@Override
+	public String toString() {
+		return "JwtResult [jwt=" + jwt + "]";
+	}
+    
 }

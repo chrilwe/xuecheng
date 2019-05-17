@@ -10,7 +10,6 @@ import lombok.ToString;
  * @Date:Created in 2018/1/24 18:33.
  * @Modified By:
  */
-@NoArgsConstructor
 public class ResponseResult implements Response {
 
     //操作是否成功
@@ -21,8 +20,12 @@ public class ResponseResult implements Response {
 
     //提示信息
     String message;
+    
+    public ResponseResult() {
+		super();
+	}
 
-    public ResponseResult(ResultCode resultCode){
+	public ResponseResult(ResultCode resultCode){
         this.success = resultCode.success();
         this.code = resultCode.code();
         this.message = resultCode.message();

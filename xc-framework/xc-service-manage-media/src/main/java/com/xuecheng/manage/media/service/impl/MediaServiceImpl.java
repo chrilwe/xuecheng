@@ -65,13 +65,16 @@ public class MediaServiceImpl implements MediaService {
 		}
 
 		// 创建文件目录
-		this.createChunkFileFloder(fileMd5);
+		boolean createChunkFileFloder = this.createChunkFileFloder(fileMd5);
 		// 将块文件写到块文件目录中
 		InputStream inputStream = null;
 		OutputStream output = null;
 		try {
 			String chunkFileFloder = this.getChunkFileFloder(fileMd5);
 			File f = new File(chunkFileFloder + chunk);
+			/**-------------------测试文件数据---------------------**/
+			//inputStream = new FileInputStream(new File("F:/develop/chunks/0"));
+			/**-------------------测试文件数据---------------------**/
 			inputStream = file.getInputStream();
 			output = new FileOutputStream(f);
 			int copy = IOUtils.copy(inputStream, output);
@@ -96,7 +99,7 @@ public class MediaServiceImpl implements MediaService {
 	/**
 	 * 创建块文件目录
 	 */
-	private void createChunkFileFloder(String fileMd5) {
+	private boolean createChunkFileFloder(String fileMd5) {
 		// 获取块文件目录
 		String chunkFileFloder = this.getChunkFileFloder(fileMd5);
 		File chunkFile = new File(chunkFileFloder);
@@ -104,7 +107,9 @@ public class MediaServiceImpl implements MediaService {
 		// 如果不存在该目录，创建目录，否则不创建
 		if (!chunkFile.exists()) {
 			boolean mkdirs = chunkFile.mkdirs();
+			return mkdirs;
 		}
+		return true;
 	}
 	
 	/**
@@ -174,10 +179,10 @@ public class MediaServiceImpl implements MediaService {
 		String fileFloder = this.getFileFloder(fileMd5);
 		// 获取文件对象
 		File file = new File(fileFloder);
-
+		
 		// 判断文件是否已经被创建
 		if (!file.exists()) {
-			boolean mkdir = file.mkdir();
+			boolean mkdir = file.mkdirs();
 			return mkdir;
 		}
 
@@ -192,9 +197,9 @@ public class MediaServiceImpl implements MediaService {
 		File file = new File(chunkFileFloder + chunk);
 
 		if (file.exists()) {
-			return new CheckChunkResult(MediaCode.UPLOAD_FILE_REGISTER_EXIST, true);
+			return new CheckChunkResult(MediaCode.UPLOAD_FILE_REGISTER_EXIST, true);//块文件已经存在
 		} else {
-			return new CheckChunkResult(MediaCode.UPLOAD_FILE_REGISTER_EXIST, false);
+			return new CheckChunkResult(MediaCode.UPLOAD_FILE_REGISTER_EXIST, false);//块文件还未上传
 		}
 	}
 
@@ -226,6 +231,7 @@ public class MediaServiceImpl implements MediaService {
 		if(!checkFileMd5) {
 			ExceptionCast.cast(MediaCode.MERGE_FILE_CHECKFAIL);
 		}
+		
 		//将文件信息存储到db
 		MediaFile mediaFile = new MediaFile();
 		mediaFile.setFileId(fileMd5);
@@ -361,7 +367,7 @@ public class MediaServiceImpl implements MediaService {
 		}
 		page = page -1;
 		
-		Pageable pageable = new QPageRequest(page,size);
+		Pageable pageable = PageRequest.of(page, size);
 		Page<MediaFile> pageList = mediaRepository.findAll(example, pageable);
 		QueryResult queryResult = new QueryResult();
 		queryResult.setList(pageList.getContent());
@@ -383,5 +389,26 @@ public class MediaServiceImpl implements MediaService {
 	public ResponseResult processVideo(String fileMd5) {
 		ResponseResult result = mediaProcessorClient.processVideo(fileMd5);
 		return result;
+	}
+
+	@Override
+	public QueryResponseResult findMediaFileByMediaIds(String mediaIds) {
+		//解析字符串
+		if(StringUtils.isEmpty(mediaIds)) {
+			return new QueryResponseResult(MediaCode.MEDIA_FILE_ID_ISNULL,null);
+		}
+		String[] split = mediaIds.split(",");
+		List<MediaFile> list = new ArrayList<MediaFile>();
+		for (String fileId : split) {
+			Optional<MediaFile> optional = mediaRepository.findById(fileId);
+			if(optional.isPresent()) {
+				MediaFile mediaFile = optional.get();
+				list.add(mediaFile);
+			}
+		}
+		
+		QueryResult queryResult = new QueryResult();
+		queryResult.setList(list);
+		return new QueryResponseResult(CommonCode.SUCCESS, queryResult);
 	}
 }

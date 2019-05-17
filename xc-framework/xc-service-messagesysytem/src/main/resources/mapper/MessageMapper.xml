@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xuecheng.message.system.mapper.MessageMapper">
+	<insert id="add" parameterType="com.xuecheng.framework.domain.message.Message">
+		insert into
+		xc_message(id,message_body,message_type,create_time,resend_time,aready_dead,status,rabbit_exchange,rabbit_queue,routing_key,version)
+		values(#{id},#{messageBody}
+		#{messageType},#{createTime},#{resendTime},#{areadyDead},#{status},#{rabbitExchange},#{rabbitQueue},#{routingKey},#{version})
+	</insert>
+	<update id="update" parameterType="com.xuecheng.framework.domain.message.Message">
+		update xc_message set
+		message_body=#{messageBody},message_type=#{messageType},
+		create_time=#{createTime},resend_time=#{resendTime},aready_dead=#{areadyDead},
+		status=#{status},rabbit_exchange=#{rabbitExchange},rabbit_queue=#{rabbitQueue},
+		routing_key=#{routingKey},version=#{version}+1
+		where id=#{id} and version=#{version}
+	</update>
+	<select id="findById" parameterType="String"
+		resultType="com.xuecheng.framework.domain.message.Message">
+		select id,message_body as messageBody,message_type as
+		messageType,create_time as createTime,resend_time as
+		resendTime,aready_dead as areadyDead,status,rabbit_exchange as
+		rabbitExchange,rabbit_queue as rabbitQueue,routing_key as routingKey,version
+		from xc_message where id=#{messageId}
+	</select>
+	<select id="findListByStatus"
+		resultType="com.xuecheng.framework.domain.message.Message">
+		select id,message_body as messageBody,message_type as
+		messageType,create_time as createTime,resend_time as
+		resendTime,aready_dead as areadyDead,status,rabbit_exchange as
+		rabbitExchange,rabbit_queue as rabbitQueue,routing_key as routingKey,version
+		from xc_message where status=#{status} limit #{start},#{size}
+	</select>
+	<select id="countReadySendingStatus" resultType="int">
+		select count(status) from xc_message where status='待发送'
+	</select>
+	<select id="countSendingStatus" resultType="int">
+		select count(status) from xc_message where status='发送中'
+	</select>
+	<delate id="deleteById">
+		delete from xc_message where id=#{messageId}
+	</delate>
+</mapper>

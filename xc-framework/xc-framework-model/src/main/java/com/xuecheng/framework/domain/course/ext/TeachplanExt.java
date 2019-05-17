@@ -7,8 +7,6 @@ import lombok.ToString;
 /**
  * Created by admin on 2018/2/7.
  */
-@Data
-@ToString
 public class TeachplanExt extends Teachplan {
 
     //媒资文件id
@@ -19,4 +17,34 @@ public class TeachplanExt extends Teachplan {
 
     //媒资文件访问地址
     private String mediaUrl;
+
+	@Override
+	public String toString() {
+		return "TeachplanExt [mediaId=" + mediaId + ", mediaFileOriginalName=" + mediaFileOriginalName + ", mediaUrl="
+				+ mediaUrl + "]";
+	}
+
+	public String getMediaId() {
+		return mediaId;
+	}
+
+	public void setMediaId(String mediaId) {
+		this.mediaId = mediaId;
+	}
+
+	public String getMediaFileOriginalName() {
+		return mediaFileOriginalName;
+	}
+
+	public void setMediaFileOriginalName(String mediaFileOriginalName) {
+		this.mediaFileOriginalName = mediaFileOriginalName;
+	}
+
+	public String getMediaUrl() {
+		return mediaUrl;
+	}
+
+	public void setMediaUrl(String mediaUrl) {
+		this.mediaUrl = mediaUrl;
+	}
 }

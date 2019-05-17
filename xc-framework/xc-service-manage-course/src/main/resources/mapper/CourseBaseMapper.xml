@@ -18,6 +18,28 @@
 	<select id="findByUserId" parameterType="String"
 		resultType="com.xuecheng.framework.domain.course.ext.CourseInfo">
 		select a.id,a.name,b.pic from course_base a left join
-		course_pic b on a.id = b.courseid where user_id=#{userId} limit #{begin},#{size}
+		course_pic b on a.id = b.courseid where user_id=#{userId} limit
+		#{begin},#{size}
+	</select>
+
+	<select id="findCourseInfoById" parameterType="String"
+		resultType="com.xuecheng.framework.domain.course.ext.CourseInfo">
+		select
+		id,name,users,mt,grade,studymodel,teachmode,description,st,status,company_id
+		as companyId,user_id as userId from course_base a left join course_pic
+		b on a.id=b.courseid where id=#{courseId}
+	</select>
+
+	<select id="findCoursePubByCourseId" parameterType="String"
+		resultType="com.xuecheng.framework.domain.course.CoursePub">
+		select
+		a.id,a.name,a.users,a.mt,a.grade,a.studymodel,a.teachmode,a.description,a.st,a.status,a.company_id
+		as companyId,a.user_id as
+		userId,b.pic,c.price,c.old_price,c.start_time as startTime,c.end_time
+		as endTime,c.charge,c.vaild from
+		course_base a left join course_pic b
+		on a.id=b.courseid left join
+		course_market c on b.courseid=c.id where
+		courseid=#{courseId}
 	</select>
 </mapper>

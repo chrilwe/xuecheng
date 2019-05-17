@@ -10,7 +10,6 @@ import lombok.ToString;
 /**
  * Created by admin on 2018/3/5.
  */
-@NoArgsConstructor
 public class CheckChunkResult extends ResponseResult{
 
 	public CheckChunkResult(ResultCode resultCode, boolean fileExist) {
@@ -18,6 +17,10 @@ public class CheckChunkResult extends ResponseResult{
         this.fileExist = fileExist;
     }
     
+	public CheckChunkResult() {
+		super();
+	}
+
 	@ApiModelProperty(value = "文件分块存在标记", example = "true", required = true)
     boolean fileExist;
 	public boolean isFileExist() {

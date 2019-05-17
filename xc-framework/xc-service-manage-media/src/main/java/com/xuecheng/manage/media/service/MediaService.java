@@ -35,4 +35,7 @@ public interface MediaService {
 	
 	//手动处理未处理成功的媒体文件
 	public ResponseResult processVideo(String fileMd5);
+	
+	//批量查询mediafile
+	public QueryResponseResult findMediaFileByMediaIds(String medisIds);
 }

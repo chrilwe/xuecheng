@@ -36,7 +36,7 @@
 	
 	<select id="findByCourseIdAndParentId" resultType="com.xuecheng.framework.domain.course.Teachplan">
 		select id,pname,parentid,grade,ptype,description,timelength,
-		courseid,orderby,status,trylearn from teachplan where courseid=#{courseid} and parentid=#{parentId}
+		courseid,orderby,status,trylearn from teachplan where courseid=#{courseId} and parentid=#{parentId}
 	</select>
 	
 	<delete id="deleteByCourseIdAndId">
@@ -51,5 +51,10 @@
 	<select id="findById" parameterType="String" resultType="com.xuecheng.framework.domain.course.Teachplan">
 		select id,pname,parentid,grade,ptype,description,timelength,
 		courseid,orderby,status,trylearn from teachplan where id=#{id}
+	</select>
+	
+	<select id="findTeachplanByCourseId" parameterType="String" resultType="com.xuecheng.framework.domain.course.Teachplan">
+		select id,pname,parentid,grade,ptype,description,timelength,
+		courseid,orderby,status,trylearn from teachplan where courseid=#{courseId}
 	</select>
 </mapper>

@@ -48,8 +48,8 @@ public class EsCourseController implements EsCourseControllerApi {
 	@GetMapping(value="/list/{page}/{size}")
 	public QueryResponseResult list(@PathVariable("page")int page, 
 			@PathVariable("size")int size, CourseSearchParam courseSearchParam) {
-		// TODO Auto-generated method stub
-		return null;
+		QueryResponseResult result = esCourseService.list(page, size, courseSearchParam);
+		return result;
 	}
 	
 	/**
@@ -57,7 +57,7 @@ public class EsCourseController implements EsCourseControllerApi {
 	 */
 	@Override
 	@PostMapping("/add")
-	public ResponseResult addCourseToEs(CoursePub coursePub, TeachplanMedia teachplanMedia) {
+	public ResponseResult addCourseToEs(CoursePub coursePub) {
 		/*
 		 * 测试假数据
 		 *
@@ -70,7 +70,7 @@ public class EsCourseController implements EsCourseControllerApi {
 		tm.setMediaId("2");
 		tm.setMediaUrl("http://");
 		tm.setTeachplanId("1");*/
-		return esCourseService.addCourseToEs(coursePub, teachplanMedia);
+		return esCourseService.addCourseToEs(coursePub);
 	}
 	
 	/**

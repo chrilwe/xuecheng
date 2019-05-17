@@ -18,5 +18,10 @@
     	<artifactId>xc-framework-common</artifactId>
     	<version>0.0.1-SNAPSHOT</version>
   	</dependency>
+  	<dependency>
+			<groupId>com.alipay.sdk</groupId>
+			<artifactId>alipay-sdk-java</artifactId>
+			<version>3.7.26.ALL</version>
+		</dependency>
   </dependencies>
 </project>

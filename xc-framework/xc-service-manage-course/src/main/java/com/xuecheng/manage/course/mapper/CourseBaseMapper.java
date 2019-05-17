@@ -5,6 +5,8 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 import com.xuecheng.framework.domain.course.CourseBase;
+import com.xuecheng.framework.domain.course.CourseOff;
+import com.xuecheng.framework.domain.course.CoursePub;
 import com.xuecheng.framework.domain.course.ext.CourseInfo;
 
 public interface CourseBaseMapper {
@@ -16,4 +18,9 @@ public interface CourseBaseMapper {
 	public List<CourseInfo> findByUserId(@Param("begin")int begin, @Param("size")int size, @Param("userId")String userId);
 	//更新课程上线状态
 	public int updateCourseStatusById(@Param("status")String status, @Param("id")String id);
+	//根据课程id查询courseInfo
+	public CourseInfo findCourseInfoById(String courseId);
+	//根据课程id查询coursePub
+	public CoursePub findCoursePubByCourseId(String courseId);
+	
 }

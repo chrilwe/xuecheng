@@ -14,4 +14,12 @@
 		mediaUrl,courseid as courseId from teachplan_media where
 		teachplan_id=#{teachplanId}
 	</select>
+	
+	<select id="findListByCourseId" parameterType="String"
+		resultType="com.xuecheng.framework.domain.course.TeachplanMedia">
+		select teachplan_id as teachplanId,media_id as
+		mediaId,media_fileoriginalname as mediaFileOriginalName,media_url as
+		mediaUrl,courseid as courseId from teachplan_media where
+		courseid=#{courseId}
+	</select>
 </mapper>

@@ -1,0 +1,24 @@
+server:
+  port: 80000
+spring: 
+  application:
+    name: xc-service-ucenter-jwt
+  
+eureka: 
+  client: #客户端注册进eureka服务列表内
+    service-url: 
+      defaultZone: http://localhost:50101/eureka/
+       #defaultZone: http://eureka7001.com:7001/eureka/,http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/      
+  instance:
+    instance-id: xc-service-ucenter-jwt
+    prefer-ip-address: true     #访问路径可以显示IP地址     
+encrypt:
+  key-store: 
+    secret: xuechengkeystore
+    alias: xckey
+    password: xuecheng
+info: 
+  app.name: xc-service-ucenter-jwt
+  company.name: www.xuecheng.com
+  build.artifactId: $project.artifactId$
+  build.version: $project.version$

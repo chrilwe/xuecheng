@@ -1,5 +1,7 @@
 package com.xuecheng.framework.api;
 
+import java.util.List;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import com.xuecheng.framework.common.model.response.QueryResponseResult;
@@ -34,4 +36,7 @@ public interface MediaControllerApi {
 	
 	//手动处理没有处理成功的媒体文件
 	public ResponseResult processVideoFile(String fileMd5);
+	
+	//批量查询媒体文件
+	public QueryResponseResult findMediaFileByMediaIds(String mediaIds);
 }

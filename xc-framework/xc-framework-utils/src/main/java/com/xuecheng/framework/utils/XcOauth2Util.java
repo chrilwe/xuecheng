@@ -25,7 +25,6 @@ public class XcOauth2Util {
         return userJwt;
     }
 
-    @Data
     public class UserJwt{
         private String id;
         private String name;
@@ -63,6 +62,11 @@ public class XcOauth2Util {
 		}
 		public void setCompanyId(String companyId) {
 			this.companyId = companyId;
+		}
+		@Override
+		public String toString() {
+			return "UserJwt [id=" + id + ", name=" + name + ", userpic=" + userpic + ", utype=" + utype + ", companyId="
+					+ companyId + "]";
 		}
         
         

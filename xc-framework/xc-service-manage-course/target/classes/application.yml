@@ -25,8 +25,12 @@ mybatis:
 
 xuecheng: 
   fastdfs: 
-    tracker_server: 192.168.25.133:22122 
- 
+    tracker_server: 192.168.25.133:22122  
+  course: 
+    PagePhysicalPath: F:/xuecheng-ui/xc-ui-pc-static-portal/course/detail
+  cms: 
+    dataUrl: http://127.0.0.1/cms/getModel/
+  
 eureka: 
   client: #客户端注册进eureka服务列表内
     service-url: 

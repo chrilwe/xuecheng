@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.indices.alias.Alias;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
@@ -22,6 +23,7 @@ import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.MatchPhraseQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -30,9 +32,13 @@ import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.xuecheng.framework.common.model.response.CommonCode;
+import com.xuecheng.framework.common.model.response.QueryResponseResult;
+import com.xuecheng.framework.common.model.response.QueryResult;
 import com.xuecheng.framework.domain.course.CoursePub;
 import com.xuecheng.framework.domain.course.TeachplanMedia;
 import com.xuecheng.search.dao.EsCourseDao;
@@ -72,15 +78,16 @@ public class EsCourseDaoImpl implements EsCourseDao {
 		jsonMap.put("mt", coursePub.getMt());
 		jsonMap.put("name", coursePub.getName());
 		jsonMap.put("pic", coursePub.getPrice());
-		jsonMap.put("pubTime", coursePub.getPubTime());
+		jsonMap.put("pub_time", coursePub.getPubTime());
 		jsonMap.put("qq", coursePub.getQq());
 		jsonMap.put("st", coursePub.getSt());
-		jsonMap.put("studyModel", coursePub.getStudymodel());
-		jsonMap.put("teachMode", coursePub.getTeachmode());
+		jsonMap.put("studymodel", coursePub.getStudymodel());
+		jsonMap.put("teachmode", coursePub.getTeachmode());
 		jsonMap.put("teachplan", coursePub.getTeachplan());
 		jsonMap.put("timestamp", coursePub.getTimestamp());
-		jsonMap.put("users", coursePub.getUsers());
 		jsonMap.put("valid", coursePub.getValid());
+		jsonMap.put("price", coursePub.getPrice());
+		jsonMap.put("price_old", coursePub.getPrice_old());
 		request.source(jsonMap);
 
 		// 3 创建文档
@@ -95,11 +102,11 @@ public class EsCourseDaoImpl implements EsCourseDao {
 
 		// 2、准备文档数据
 		Map<String, Object> source = new HashMap<>();
-		source.put("teachplanId", teachplanMedia.getTeachplanId());
-		source.put("courseId", teachplanMedia.getCourseId());
-		source.put("mediaFileOriginalName", teachplanMedia.getMediaFileOriginalName());
-		source.put("mediaId", teachplanMedia.getMediaId());
-		source.put("mediaUrl", teachplanMedia.getMediaUrl());
+		source.put("teachplan_id", teachplanMedia.getTeachplanId());
+		source.put("course_id", teachplanMedia.getCourseId());
+		source.put("media_fileoriginalname", teachplanMedia.getMediaFileOriginalName());
+		source.put("media_id", teachplanMedia.getMediaId());
+		source.put("media_url", teachplanMedia.getMediaUrl());
 		request.source(source);
 
 		// 3 创建文档
@@ -169,14 +176,14 @@ public class EsCourseDaoImpl implements EsCourseDao {
 		jsonMap.put("mt", coursePub.getMt());
 		jsonMap.put("name", coursePub.getName());
 		jsonMap.put("pic", coursePub.getPrice());
-		jsonMap.put("pubTime", coursePub.getPubTime());
+		jsonMap.put("price_old", coursePub.getPrice_old());
+		jsonMap.put("pub_time", coursePub.getPubTime());
 		jsonMap.put("qq", coursePub.getQq());
 		jsonMap.put("st", coursePub.getSt());
-		jsonMap.put("studyModel", coursePub.getStudymodel());
-		jsonMap.put("teachMode", coursePub.getTeachmode());
+		jsonMap.put("studymodel", coursePub.getStudymodel());
+		jsonMap.put("teachmode", coursePub.getTeachmode());
 		jsonMap.put("teachplan", coursePub.getTeachplan());
 		jsonMap.put("timestamp", coursePub.getTimestamp());
-		jsonMap.put("users", coursePub.getUsers());
 		jsonMap.put("valid", coursePub.getValid());
 		request.doc(jsonMap);
 		
@@ -187,11 +194,11 @@ public class EsCourseDaoImpl implements EsCourseDao {
 	public boolean updateTeachplanMedia(String indexName, String type, String doc_id, TeachplanMedia teachplanMedia) {
 		UpdateRequest request = this.updateRequest(indexName, type, doc_id);
 		Map<String, Object> source = new HashMap<>();
-		source.put("teachplanId", teachplanMedia.getTeachplanId());
-		source.put("courseId", teachplanMedia.getCourseId());
-		source.put("mediaFileOriginalName", teachplanMedia.getMediaFileOriginalName());
-		source.put("mediaId", teachplanMedia.getMediaId());
-		source.put("mediaUrl", teachplanMedia.getMediaUrl());
+		source.put("teachplan_id", teachplanMedia.getTeachplanId());
+		source.put("course_id", teachplanMedia.getCourseId());
+		source.put("media_fileoriginalname", teachplanMedia.getMediaFileOriginalName());
+		source.put("media_id", teachplanMedia.getMediaId());
+		source.put("media_url", teachplanMedia.getMediaUrl());
 		request.doc(source);
 		return this.updateDoc(request, source);
 	}
@@ -204,7 +211,7 @@ public class EsCourseDaoImpl implements EsCourseDao {
 			SearchRequest searchRequest = new SearchRequest(indexName);
 			searchRequest.types(type);
 			SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-			MatchPhraseQueryBuilder query = this.uniqueMatchQuery("courseId", courseId);
+			MatchPhraseQueryBuilder query = this.uniqueMatchQuery("course_id", courseId);
 			sourceBuilder.query(query);
 			searchRequest.source(sourceBuilder);
 			SearchResponse search = restHighLevelClient.search(searchRequest);
@@ -212,11 +219,11 @@ public class EsCourseDaoImpl implements EsCourseDao {
 			for (SearchHit searchHit : hits) {
 				Map<String, Object> source = searchHit.getSourceAsMap();
 				//解析返回结果
-				String teachplanId = (String) source.get("teachplanId");
-				String mediaId = (String) source.get("mediaId");
-				String mediaFileOriginalName = (String) source.get("mediaFileOriginalName");
-				String mediaUrl = (String) source.get("mediaUrl");
-				String course_id = (String) source.get("courseId");
+				String teachplanId = (String) source.get("teachplan_id");
+				String mediaId = (String) source.get("media_id");
+				String mediaFileOriginalName = (String) source.get("media_fileoriginalname");
+				String mediaUrl = (String) source.get("media_url");
+				String course_id = (String) source.get("course_id");
 				
 				TeachplanMedia teachplanMedia = new TeachplanMedia();
 				teachplanMedia.setCourseId(course_id);
@@ -241,7 +248,7 @@ public class EsCourseDaoImpl implements EsCourseDao {
 			SearchRequest searchRequest = new SearchRequest(indexName);
 			searchRequest.types(type);
 			SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-			MatchPhraseQueryBuilder query = this.uniqueMatchQuery("teachplanId", teachplanId);
+			MatchPhraseQueryBuilder query = this.uniqueMatchQuery("id", teachplanId);
 			sourceBuilder.query(query);
 			searchRequest.source(sourceBuilder);
 			SearchResponse search = restHighLevelClient.search(searchRequest);
@@ -259,14 +266,13 @@ public class EsCourseDaoImpl implements EsCourseDao {
 				coursePub.setPic((String)map.get("pic"));
 				coursePub.setPrice((Float)map.get("price"));
 				coursePub.setPrice_old((Float)map.get("price_old"));
-				coursePub.setPubTime((String)map.get("pubTime"));
+				coursePub.setPubTime((String)map.get("pub_time"));
 				coursePub.setQq((String)map.get("qq"));
 				coursePub.setSt((String)map.get("st"));
-				coursePub.setStudymodel((String)map.get("studyModel"));
-				coursePub.setTeachmode((String)map.get("teachMode"));
+				coursePub.setStudymodel((String)map.get("studymodel"));
+				coursePub.setTeachmode((String)map.get("teachmode"));
 				coursePub.setTeachplan((String)map.get("teachplan"));
 				coursePub.setTimestamp(new Date());
-				coursePub.setUsers((String)map.get("users"));
 				coursePub.setValid((String)map.get("valid"));
 				list.add(coursePub);
 			}
@@ -284,5 +290,53 @@ public class EsCourseDaoImpl implements EsCourseDao {
 	private MatchPhraseQueryBuilder uniqueMatchQuery(String fieldKey, String fieldValue) {
 		MatchPhraseQueryBuilder builder = QueryBuilders.matchPhraseQuery(fieldKey, fieldValue);
 		return builder;
+	}
+
+	@Override
+	public QueryResponseResult queryByKeyWords(SearchRequest searchRequest) {
+		List<CoursePub> coursePubList = new ArrayList<CoursePub>();
+		try {
+			SearchResponse response = restHighLevelClient.search(searchRequest);
+			SearchHits hits = response.getHits();
+			//获取总记录条数
+			long total = hits.getTotalHits();
+			//获取文档集合，并且解析到对象中
+			for (SearchHit searchHit : hits) {
+				Map<String, Object> sourceAsMap = searchHit.getSourceAsMap();
+				CoursePub coursePub = new CoursePub();
+				String id = (String) sourceAsMap.get("id");
+				coursePub.setId(id);
+				
+				String name = (String) sourceAsMap.get("name");
+				Map<String, HighlightField> highlightFields = searchHit.getHighlightFields();
+				if(highlightFields != null) {
+					HighlightField highlightField = highlightFields.get("name");
+					Text[] fragments = highlightField.getFragments();
+					StringBuffer buffer = new StringBuffer();
+					for (Text text : fragments) {
+						buffer.append(text);
+					}
+					name = buffer.toString();
+				}
+				coursePub.setName(name);
+				
+				String pic = (String) sourceAsMap.get("pic");
+				coursePub.setPic(pic);				
+				float price = (Float) sourceAsMap.get("price");
+				coursePub.setPrice(price);
+				float price_old = (float) sourceAsMap.get("price_old");
+				coursePub.setPrice_old(price_old);
+				coursePubList.add(coursePub);
+				
+				QueryResult<CoursePub> queryResult = new QueryResult();
+				queryResult.setList(coursePubList);
+				queryResult.setTotal(total);
+				return new QueryResponseResult(CommonCode.SUCCESS,queryResult);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		return null;
 	}
 }

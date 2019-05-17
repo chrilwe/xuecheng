@@ -191,5 +191,9 @@
 		<module>xc-service-search</module>
 		<module>xc-service-learning</module>
 		<module>xc-service-messagesysytem</module>
+		<module>xc-service-topology</module>
+		<module>xc-service-base-paysystem</module>
+		<module>xc-service-center-order</module>
+		<module>xc-service-ucenter-jwt</module>
 	</modules>
 </project>

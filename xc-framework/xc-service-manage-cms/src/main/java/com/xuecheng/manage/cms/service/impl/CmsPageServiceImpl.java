@@ -43,11 +43,13 @@ import com.xuecheng.framework.common.model.response.QueryResult;
 import com.xuecheng.framework.domain.cms.CmsConfig;
 import com.xuecheng.framework.domain.cms.CmsConfigModel;
 import com.xuecheng.framework.domain.cms.CmsPage;
+import com.xuecheng.framework.domain.cms.CmsSite;
 import com.xuecheng.framework.domain.cms.CmsTemplate;
 import com.xuecheng.framework.domain.cms.response.CmsCode;
 import com.xuecheng.framework.domain.cms.response.CmsPageResult;
 import com.xuecheng.manage.cms.config.RabbitMqConfig;
 import com.xuecheng.manage.cms.dao.CmsPageRepository;
+import com.xuecheng.manage.cms.dao.CmsSiteRepository;
 import com.xuecheng.manage.cms.dao.CmsTemplateRepository;
 import com.xuecheng.manage.cms.service.CmsPageService;
 
@@ -70,6 +72,8 @@ public class CmsPageServiceImpl implements CmsPageService {
 	private GridFsTemplate gridFsTemplate;
 	@Autowired
 	private RabbitTemplate rabbitTemplate;
+	@Autowired
+	private CmsSiteRepository cmsSiteRepository;
 	
 
 	@Override
@@ -290,17 +294,22 @@ public class CmsPageServiceImpl implements CmsPageService {
 		//更新fieldId到cmspage中
 		CmsPage page = this.findById(pageId);
 		page.setHtmlFileId(fieldId);
+		page.setPageStatus("未发布");
 		cmsPageRepository.deleteById(pageId);
 		cmsPageRepository.save(page);
 		
 		//将pageId发送到消息队列
 		String type = "";
-		if(page.getPageType().equals("0")) {
-			type = "protal";//门户页面内容
-		} else if(page.getPageType().equals("1")) {
-			type = "course";//课程详情页
+		Optional<CmsSite> optional = cmsSiteRepository.findById(cmsPage.getSiteId());
+		if(optional.isPresent()) {
+			CmsSite cmsSite = optional.get();
+			if(cmsSite.getSiteName().equals("门户主站")) {
+				type = "protal";
+			} else if(cmsSite.getSiteName().equals("课程详情页")) {
+				type = "course";
+			}
+			rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE_TOPICS_INFORM, "inform.#."+type+".#", pageId);
 		}
-		rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE_TOPICS_INFORM, "inform.#."+type+".#", pageId);
 		
 		return new CmsPageResult(CommonCode.SUCCESS, cmsPage);
 	}

@@ -69,7 +69,7 @@ public class CmsPageController implements CmsPageControllerApi {
 	/**
 	 * cmsPage添加
 	 */
-	@RequestMapping("/add")
+	@PostMapping("/cmsPage/add")
 	public CmsPageResult add(@RequestBody CmsPage cmsPage) {
 		
 		return cmsPageService.add(cmsPage);
@@ -191,6 +191,16 @@ public class CmsPageController implements CmsPageControllerApi {
 	public List<CmsConfig> findCmsConfigs() {
 		List<CmsConfig> cmsConfigs = cmsConfigService.findCmsConfigs();
 		return cmsConfigs;
+	}
+	
+	/**
+	 * 获取预览页面HTML数据
+	 */
+	@Override
+	@GetMapping("/getHtml/{pageId}")
+	public String getHtml(@PathVariable("pageId")String pageId) {
+		
+		return cmsPageService.getPageHtml(pageId);
 	}
 	
 }

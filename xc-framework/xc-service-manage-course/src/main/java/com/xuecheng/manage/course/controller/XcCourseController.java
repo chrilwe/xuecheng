@@ -2,6 +2,9 @@ package com.xuecheng.manage.course.controller;
 
 import java.util.List;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,8 +20,12 @@ import org.springframework.web.multipart.MultipartFile;
 import com.xuecheng.framework.api.XcCourseControllerApi;
 import com.xuecheng.framework.common.exception.ExceptionCast;
 import com.xuecheng.framework.common.model.response.ResponseResult;
+import com.xuecheng.framework.common.web.BaseController;
+import com.xuecheng.framework.domain.cms.CmsPage;
 import com.xuecheng.framework.domain.cms.response.CmsPageResult;
 import com.xuecheng.framework.domain.course.CourseBase;
+import com.xuecheng.framework.domain.course.CourseMarket;
+import com.xuecheng.framework.domain.course.CoursePub;
 import com.xuecheng.framework.domain.course.Teachplan;
 import com.xuecheng.framework.domain.course.TeachplanMedia;
 import com.xuecheng.framework.domain.course.ext.CourseInfo;
@@ -30,7 +37,7 @@ import com.xuecheng.manage.course.service.XcCourseService;
 
 @RestController
 @RequestMapping("/course")
-public class XcCourseController implements XcCourseControllerApi {
+public class XcCourseController extends BaseController implements XcCourseControllerApi {
 	
 	@Autowired
 	private XcCourseService xcCourseService;
@@ -52,11 +59,14 @@ public class XcCourseController implements XcCourseControllerApi {
 	 * @param coursebase 课程基本信息
 	 */
 	@Override
-	@PostMapping("/course/add")
-	public AddCourseResult addCourse(@RequestBody CourseBase courseBase) {
+	@PostMapping("/coursebase/add")
+	public AddCourseResult addCourse(CourseBase courseBase) {
 		if(courseBase == null) {
 			ExceptionCast.cast(CourseCode.COURSE_COMMIT_NULL);
 		}
+		//获取用户id
+		String userId = "1";
+		courseBase.setUserId(userId);
 		AddCourseResult result = null;
 		try {
 			result = xcCourseService.addCourse(courseBase);
@@ -67,14 +77,24 @@ public class XcCourseController implements XcCourseControllerApi {
 	}
 	
 	/**
-	 * 添加课程计划
+	 * 添加课程计划 
 	 * @param teachplan 课程计划基本信息
 	 */
 	@Override
 	@PostMapping("/teachplan/add")
-	public ResponseResult addTeachplan(@RequestBody Teachplan teachplan) {
+	public ResponseResult addTeachplan(Teachplan teachplan) {
 		ResponseResult result = xcCourseService.addTeachplan(teachplan);
 		return result;
+	}
+	
+	/**
+	 * 添加课程营销信息
+	 */
+	@Override
+	@PostMapping("/coursemarket/add")
+	public ResponseResult addCourseMarkert(CourseMarket courseMarket) {
+		
+		return xcCourseService.addCourseMarkert(courseMarket);
 	}
 	
 	/**
@@ -94,8 +114,8 @@ public class XcCourseController implements XcCourseControllerApi {
 	@Override
 	@PostMapping("/pic/upload")
 	public UploadFileResult upLoadCoursePic(MultipartFile file, String courseId) {
-		UploadFileResult result = xcCourseService.uploadCoursePic(file, courseId);
-		return result;
+		//UploadFileResult result = xcCourseService.uploadCoursePic(file, courseId);
+		return null;
 	}
 	
 	/**
@@ -122,11 +142,50 @@ public class XcCourseController implements XcCourseControllerApi {
 	
 	/**
 	 * 课程发布
+	 * @param courseId 课程id
+	 * @param templateId 页面模板id
 	 */
 	@Override
-	@GetMapping("/createHtml/{courseId}")
-	public CmsPageResult createCourseHtml(@PathVariable("courseId")String courseId) {
+	@GetMapping("/createhtml/{siteId}/{courseId}/{templateId}")
+	public CmsPageResult createCourseHtml(@PathVariable("courseId")String courseId,
+			@PathVariable("templateId")String templateId, @PathVariable("siteId")String siteId) {
 		
-		return null;
+		return xcCourseService.createCourseHtml(courseId, templateId, siteId);
 	}
+	
+	/**
+	 * 课程详情页面预览
+	 */
+	@Override
+	@GetMapping("/previewhtml/{siteId}/{courseId}/{templateId}")
+	public void preViewCoursePage(@PathVariable("courseId")String courseId,
+			@PathVariable("templateId")String templateId, @PathVariable("siteId")String siteId) {
+		try {
+			String html = xcCourseService.preViewCoursePage(courseId, templateId, siteId);
+			ServletOutputStream outputStream = response.getOutputStream();
+			outputStream.write(html.getBytes("utf-8"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 根据课程id查询课程基本信息
+	 */
+	@Override
+	@GetMapping("/find/coursebase/{courseId}")
+	public CourseBase findCourseBaseByCourseid(@PathVariable("courseId")String courseId) {
+		
+		return xcCourseService.findCourseBaseByCourseId(courseId);
+	}
+	
+	/**
+	 * 根据courseId查询发布课程信息
+	 */
+	@Override
+	@GetMapping("/find/coursePub/{courseId}")
+	public CoursePub findCoursePubByCourseId(@PathVariable("courseId")String courseId) {
+		
+		return xcCourseService.findCoursePubByCourseId(courseId);
+	}	
 }

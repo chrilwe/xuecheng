@@ -40,6 +40,7 @@ public class CmsTemplateServiceImpl implements CmsTemplateService {
 		cmsTemplate.setTemplateFileId(fieldId);
 		cmsTemplate.setTemplateName(templateName);
 		cmsTemplate.setTemplateParameter(templateParameter);
+		cmsTemplate.setTemplateId(fieldId);
 		cmsTemplateRepository.insert(cmsTemplate);
 		return fieldId;
 	}

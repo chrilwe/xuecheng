@@ -41,4 +41,6 @@ public interface CmsPageControllerApi {
 	public List<CmsConfig> findCmsConfigs();
 	//发布静态页面
 	public CmsPageResult createHtml(String id);
+	//页面预览html数据获取接口
+	public String getHtml(String pageId);
 }

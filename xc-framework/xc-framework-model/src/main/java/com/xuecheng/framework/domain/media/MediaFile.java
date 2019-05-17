@@ -45,9 +45,18 @@ public class MediaFile {
     private MediaFileProcess_m3u8 mediaFileProcess_m3u8;
     //userId
     private String userId;
-
+    //视频时间长度
+    private String mediaTime;
     //tag标签用于查询
     private String tag;
+
+	public String getMediaTime() {
+		return mediaTime;
+	}
+
+	public void setMediaTime(String mediaTime) {
+		this.mediaTime = mediaTime;
+	}
 
 	public String getUserId() {
 		return userId;
@@ -167,7 +176,7 @@ public class MediaFile {
 				+ ", filePath=" + filePath + ", fileUrl=" + fileUrl + ", fileType=" + fileType + ", mimeType="
 				+ mimeType + ", fileSize=" + fileSize + ", fileStatus=" + fileStatus + ", uploadTime=" + uploadTime
 				+ ", processStatus=" + processStatus + ", mediaFileProcess_m3u8=" + mediaFileProcess_m3u8 + ", userId="
-				+ userId + ", tag=" + tag + "]";
+				+ userId + ", mediaTime=" + mediaTime + ", tag=" + tag + "]";
 	}
 
 }

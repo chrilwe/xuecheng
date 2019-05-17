@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xuecheng.center.order.mapper.XcOrdersMapper">
+	<insert id="add" parameterType="com.xuecheng.framework.domain.order.XcOrders">
+		insert into
+		xc_orders(order_number,initial_price,price,start_time,end_time,status,user_id,details)
+		values(#{orderNumber},#{initialPrice},#{price},#{startTime},#{endTime},#{status},#{userId},#{details})
+	</insert>
+
+	<delete id="deleteByOrderNum" parameterType="String">
+		delete from
+		xc_orders where order_number=#{orderNum}
+	</delete>
+
+	<update id="update" parameterType="com.xuecheng.framework.domain.order.XcOrders">
+		update xc_orders set initial_price=#{initialPrice},price=#{price},start_time=#{startTime},end_time=#{endTime},status=#{status},details=#{details}
+		where order_number=#{orderNumber}
+	</update>
+
+	<select id="findByOrderNum" parameterType="String"
+		resultType="com.xuecheng.framework.domain.order.XcOrders">
+		select order_number as orderNumber,initial_price as
+		initialPrice,price,start_time as startTime,end_time as
+		endTime,status,user_id as userId,details from xc_orders where
+		order_number=#{orderNum}
+	</select>
+	
+	<select id="findNoPayOrderByUserId"
+		resultType="com.xuecheng.framework.domain.order.XcOrders">
+		select order_number as orderNumber,initial_price as
+		initialPrice,price,start_time as startTime,end_time as
+		endTime,status,user_id as userId,details from xc_orders where
+		user_id=#{userId} and status=#{status}
+	</select>
+	
+	<select id="queryOrdersList"
+		resultType="com.xuecheng.framework.domain.order.XcOrders">
+		select order_number as orderNumber,initial_price as
+		initialPrice,price,start_time as startTime,end_time as
+		endTime,status,user_id as userId,details from xc_orders where
+		user_id=#{userId} and status=#{status} limit #{start},#{size}
+	</select>
+	
+	<select id="countByStatus" resultType="int">
+		select count(status) from xc_orders where status=#{status} and user_id=#{userId}
+	</select>
+	
+	<select id="countByStatus1" resultType="int">
+		select count(status) from xc_orders where status=#{status}
+	</select>
+	
+	<select id="findNoPayOrders" resultType="com.xuecheng.framework.domain.order.XcOrders">
+		select order_number as orderNumber,initial_price as
+		initialPrice,price,start_time as startTime,end_time as
+		endTime,status,user_id as userId,details from xc_orders where
+		status=#{status} limit #{start},#{size}
+	</select>
+</mapper>

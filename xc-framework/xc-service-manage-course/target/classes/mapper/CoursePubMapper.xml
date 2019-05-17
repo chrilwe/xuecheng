@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xuecheng.manage.course.mapper.CoursePubMapper">
+	<insert id="addCoursePub" parameterType="com.xuecheng.framework.domain.course.CoursePub">
+		insert into
+		course_pub(id,name,users,mt,st,grade,studymodel,teachmode,description,timestamp,charge,valid,qq,price,price_old,expires,start_time,end_time,pic,teachplan,pub_time)
+		values(#{id},#{name},#{users},#{mt},#{st},#{grade},#{studymodel},#{teachmode},#{description},
+		#{timestamp},#{charge},#{valid},#{qq},#{price},#{price_old},#{expires},#{start_time},#{end_time},#{pic},#{teachplan},#{pub_time})
+	</insert>
+	<select id="findCoursePubByCourseId" parameterType="String"
+		resultType="com.xuecheng.framework.domain.course.CoursePub">
+		select
+		id,name,users,mt,st,grade,studymodel,teachmode,description,timestamp,charge,valid,qq,price,price_old,expires,start_time
+		as startTime,end_time as endTime,pic,teachplan,pub_time as pubTime
+		from course_pub where id=#{courseId}
+	</select>
+</mapper>

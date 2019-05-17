@@ -42,10 +42,14 @@ public class CmsManagerClientServiceImpl implements CmsManagerClientService {
 			ExceptionCast.cast(CmsCode.CMS_GENERATEHTML_HTMLISNULL);// 生成的静态html为空！
 		}
 
-		// 将静态文件生成html推送到nginx中
+		// 将静态文件生成html推送到nginx中,将页面发布状态改为已发布
 		try {
 			FileOutputStream output = new FileOutputStream(new File(pagePhysicalPath + "/" + pageName));
 			IOUtils.write(html.getBytes(), output);
+			
+			cmsPage.setPageStatus("已发布");
+			cmsPageClient.add(cmsPage);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;

@@ -20,7 +20,9 @@ public enum CmsCode implements ResultCode {
 	CMS_INVALID_PARAM(false,24008,"非法参数!"),
 	CMS_TEMPLATE_NAME_NULL(false,24009,"页面模板名称为空！"),
 	CMS_TEMPLATE_SITE_NULL(false,24010,"模板关联的站点id为空!"),
-	CMS_PAGENAMEISNULL(false,24011,"页面名称为空!");
+	CMS_PAGENAMEISNULL(false,24011,"页面名称为空!"),
+	CMS_ADDCMSPAGE_FAIL(false,24012,"添加CMS_PAGE失败!"),
+	CMS_ADDCMSCONFIG_FAIL(false,24012,"添加CMS_CONFIG失败!");
     //操作代码
     boolean success;
     //操作代码

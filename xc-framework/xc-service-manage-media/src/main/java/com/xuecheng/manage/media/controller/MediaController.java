@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -55,6 +57,7 @@ public class MediaController implements MediaControllerApi {
 		}
 	}
 	
+	
 	/**
 	 * 检查块文件
 	 */
@@ -88,7 +91,7 @@ public class MediaController implements MediaControllerApi {
 	public ResponseResult mergeChunkFile(String fileMd5, 
 			String fileName, String fileSize, String mimeType,
 			String fileExt) {
-		String userId = "";
+		String userId = "1";
 		ResponseResult result = mediaService.mergeChunkFile(fileMd5, fileName, fileSize, mimeType, fileExt, userId);
 		try {
 			if(result.isSuccess()) {
@@ -109,7 +112,8 @@ public class MediaController implements MediaControllerApi {
 	@GetMapping("/list/{page}/{size}")
 	public QueryResponseResult findMediaFileList(@PathVariable("page")int page, 
 			@PathVariable("size")int size, QueryMediaFileRequest queryMediaFileRequest) {
-		String userId = "";
+		//TODO
+		String userId = "1";
 		return mediaService.findMediaFileList(page, size, queryMediaFileRequest, userId);
 	}
 	
@@ -131,6 +135,17 @@ public class MediaController implements MediaControllerApi {
 	public ResponseResult processVideoFile(@PathVariable("fileMd5")String fileMd5) {
 		
 		return mediaService.processVideo(fileMd5);
+	}
+	
+	/**
+	 * 批量查询媒体文件
+	 * @param mediaIds 媒体文件id集合
+	 */
+	@Override
+	@GetMapping("/getMediaFile")
+	public QueryResponseResult findMediaFileByMediaIds(@RequestParam("mediaIds")String mediaIds) {
+		
+		return mediaService.findMediaFileByMediaIds(mediaIds);
 	}
 	
 }

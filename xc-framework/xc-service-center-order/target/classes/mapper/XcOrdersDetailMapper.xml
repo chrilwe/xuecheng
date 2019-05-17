@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xuecheng.center.order.mapper.XcOrdersDetailMapper">
+	<insert id="add" parameterType="com.xuecheng.framework.domain.order.XcOrdersDetail">
+		insert into
+		xc_orders_detail(id,order_number,item_id,item_num,item_price,valid,start_time,end_time,item_title)
+		values(#{id},#{orderNumber},#{itemId},#{itemNum},#{itemPrice},#{valid},#{startTime},#{endTime},#{itemTitle})
+	</insert>
+
+	<delete id="deleteByOrderNum" parameterType="String">
+		delete from
+		xc_orders_detail where order_number=#{orderNum}
+	</delete>
+
+	<update id="update" parameterType="com.xuecheng.framework.domain.order.XcOrdersDetail">
+		update xc_orders_detail set
+		item_id=#{itemId},item_num=#{itemNum},item_price=#{itemPrice},valid=#{valid},start_time=#{startTime},end_time=#{endTime},item_title=#{itemTitle}
+		where order_number=#{orderNumber}
+	</update>
+
+	<select id="findByOrderNum" parameterType="String"
+		resultType="com.xuecheng.framework.domain.order.XcOrdersDetail">
+		select id,order_number as orderNumber,item_id as
+		itemId,item_num as itemNum,item_price as itemPrice,valid,start_time as
+		startTime,end_time as endTime,item_title as itemTitle from xc_orders_detail where
+		order_number=#{orderNum}
+	</select>
+</mapper>

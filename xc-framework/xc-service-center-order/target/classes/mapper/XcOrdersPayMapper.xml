@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xuecheng.center.order.mapper.XcOrdersPayMapper">
+	<insert id="add" parameterType="com.xuecheng.framework.domain.order.XcOrdersPay">
+		insert into xc_orders_pay(id,order_number,status,pay_number) values(#{id},#{orderNumber},#{status},#{payNumber})
+	</insert>
+	
+	<delete id="deleteByOrderNum" parameterType="String">
+		delete from xc_orders_pay where order_number=#{orderNum}
+	</delete>
+	
+	<update id="update" parameterType="com.xuecheng.framework.domain.order.XcOrdersPay">
+		update xc_orders_pay set status=#{status} where order_number=#{orderNumber}
+	</update>
+	
+	<select id="findByOrderNum" parameterType="String" resultType="com.xuecheng.framework.domain.order.XcOrdersPay">
+		select id,order_number as orderNumber,status,pay_number as payNumber from xc_orders_pay where order_number=#{orderNum}
+	</select>
+</mapper>

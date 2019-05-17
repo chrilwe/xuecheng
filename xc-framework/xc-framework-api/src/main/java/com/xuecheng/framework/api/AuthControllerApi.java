@@ -8,6 +8,6 @@ import com.xuecheng.framework.domain.ucenter.request.LoginRequest;
 import com.xuecheng.framework.domain.ucenter.response.LoginResult;
 
 public interface AuthControllerApi {
-	public LoginResult login(LoginRequest loginRequest, HttpServletResponse response);
+	public LoginResult login(LoginRequest loginRequest);
 	public ResponseResult logout();
 }

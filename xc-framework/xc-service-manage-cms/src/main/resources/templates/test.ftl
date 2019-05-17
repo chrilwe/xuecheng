@@ -1,6 +1,7 @@
 <html>
 	<head>test</head>
 	<body>
-		${test}
+		
+		<#if model??>${(model[0].mapValue)['courseInfo'].name}</#if>
 	</body>
 </html>

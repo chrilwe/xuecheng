@@ -18,7 +18,13 @@ public enum AuthCode implements ResultCode {
     AUTH_CREDENTIAL_ERROR(false,23005,"账号或密码错误！"),
     AUTH_LOGIN_ERROR(false,23006,"登陆过程出现异常请尝试重新操作！"), 
     AUTH_LOGIN_TOKEN_SAVEFAIL(false,23007,"令牌存储异常！"), 
-    AUTH_LOGIN_APPLYTOKEN_FAIL(false,23008,"令牌申请错误！");
+    AUTH_LOGIN_APPLYTOKEN_FAIL(false,23008,"令牌申请错误！"),
+    AUTH_LOGIN_TYPE_ERROE(false,23009,"请选择登录方式！！"),
+    AUTH_GETALIPAYTOKEN_FAIL(false,23010,"使用auth_code换取接口access_token及用户userId失败！！"),
+    AUTH_AUTHTOKEN_ISNULL(false,23011,"支付宝令牌不存在"),
+    AUTH_QUERYUSERDETAILS_FAIL(false,23012,"根据支付宝令牌查询会员信息失败！！！"),
+    AUTH_QUERYUSERDETAILS_ERROE(false,23013,"根据支付宝令牌查询会员信息异常！！！"),
+    AUTH_CREATE_JWT_ISNULL(false,23014,"没有生成令牌！！！");
 
     //操作代码
     @ApiModelProperty(value = "操作是否成功", example = "true", required = true)

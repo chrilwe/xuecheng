@@ -15,7 +15,8 @@ public class XcServiceList {
     public static final String XC_SERVICE_BASE_FILESYSTEM = "xc-service-base-filesystem";
     public static final String XC_GOVERN_GATEWAY = "xc-govern-gateway";
     public static final String XC_SERVICE_BASE_ID = "xc-service-base-id";
-    public static final String XC_SERVICE_MANAGE_ORDER = "xc-service-manage-order";
+    public static final String XC_SERVICE_CENTER_ORDER = "xc-service-center-order";
     public static final String XC_SERVICE_LEARNING = "xc-service-learning";
-
+    public static final String XC_SERVICE_MESSAGESYSTEM="xc_service_messagesystem";
+    public static final String XC_SERVICE_BASE_PAYSYSTEM="xc-service-base-paysystem";
 }

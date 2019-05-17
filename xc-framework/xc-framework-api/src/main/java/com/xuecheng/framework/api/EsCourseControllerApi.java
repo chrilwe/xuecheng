@@ -26,8 +26,8 @@ public interface EsCourseControllerApi {
     //@ApiOperation("根据课程计划id查询课程媒资信息")
     //public TeachplanMediaPub getmedia(String id);
     
-    //添加课程和媒体信息到搜索库中
-    public ResponseResult addCourseToEs(CoursePub coursePub, TeachplanMedia teachplanMedia);
+    //添加课程到搜索库中
+    public ResponseResult addCourseToEs(CoursePub coursePub);
     
     //根据课程id查询coursepub
     public QueryResponseResult findCoursePubByCourseId(String courseId);

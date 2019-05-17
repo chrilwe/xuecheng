@@ -17,8 +17,6 @@ import java.util.List;
  * @Date:Created in 2018/1/24 9:46.
  * @Modified By:
  */
-@Data
-@ToString
 @Document(collection = "cms_site")
 public class CmsSite {
 
@@ -35,5 +33,46 @@ public class CmsSite {
     private String siteWebPath;
     //创建时间
     private Date siteCreateTime;
+	public String getSiteId() {
+		return siteId;
+	}
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
+	public String getSiteName() {
+		return siteName;
+	}
+	public void setSiteName(String siteName) {
+		this.siteName = siteName;
+	}
+	public String getSiteDomain() {
+		return siteDomain;
+	}
+	public void setSiteDomain(String siteDomain) {
+		this.siteDomain = siteDomain;
+	}
+	public String getSitePort() {
+		return sitePort;
+	}
+	public void setSitePort(String sitePort) {
+		this.sitePort = sitePort;
+	}
+	public String getSiteWebPath() {
+		return siteWebPath;
+	}
+	public void setSiteWebPath(String siteWebPath) {
+		this.siteWebPath = siteWebPath;
+	}
+	public Date getSiteCreateTime() {
+		return siteCreateTime;
+	}
+	public void setSiteCreateTime(Date siteCreateTime) {
+		this.siteCreateTime = siteCreateTime;
+	}
+	@Override
+	public String toString() {
+		return "CmsSite [siteId=" + siteId + ", siteName=" + siteName + ", siteDomain=" + siteDomain + ", sitePort="
+				+ sitePort + ", siteWebPath=" + siteWebPath + ", siteCreateTime=" + siteCreateTime + "]";
+	}
 
 }

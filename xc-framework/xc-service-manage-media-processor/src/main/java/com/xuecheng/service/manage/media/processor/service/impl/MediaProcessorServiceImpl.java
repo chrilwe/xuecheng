@@ -22,7 +22,7 @@ public class MediaProcessorServiceImpl implements MediaProcessorService {
 	
 	@Value("${xc-service-manage-media-processor.processor-media-location}")
     private String m3u8floder_path;
-    @Value("${{xc-service-manage-media-processor.ffmpeg-location}")
+    @Value("${xc-service-manage-media-processor.ffmpeg-location}")
     private String ffmpeg_path;
 	
 	@Override
@@ -44,9 +44,10 @@ public class MediaProcessorServiceImpl implements MediaProcessorService {
 			mediaFileRepository.save(mediaFile);
 			
 			String video_path = mediaFile.getFilePath();
-			String m3u8_name = mediaFile.getFileName();
-			HlsVideoUtil util = new HlsVideoUtil(ffmpeg_path ,video_path,m3u8_name ,m3u8floder_path);
-			String result = util.generateM3u8();
+			String m3u8_name = fileMd5 + ".m3u8";
+			HlsVideoUtil util = new HlsVideoUtil(ffmpeg_path ,video_path,m3u8_name ,m3u8floder_path + fileMd5 + "/");
+			String result = util.generateM3u8();//生成m3u8文件
+			String get_video_time = util.get_video_time(video_path);//获取视频时间长度
 			if(result == null || !result.equals("SUCCESS")) {
 				mediaFile.setProcessStatus("303003");//处理状态为失败
 				MediaFileProcess_m3u8 mediaFileProcess_m3u8 = new MediaFileProcess_m3u8();
@@ -60,7 +61,8 @@ public class MediaProcessorServiceImpl implements MediaProcessorService {
 			MediaFileProcess_m3u8 mediaFileProcess_m3u8 = new MediaFileProcess_m3u8();
 			mediaFileProcess_m3u8.setTslist(get_ts_list);
 			mediaFile.setMediaFileProcess_m3u8(mediaFileProcess_m3u8);
-			mediaFile.setFileUrl(m3u8floder_path + fileMd5 + ".m3u8");
+			mediaFile.setFileUrl(fileMd5 + "/" + fileMd5 + ".m3u8");
+			mediaFile.setMediaTime(get_video_time);
 			mediaFileRepository.save(mediaFile);
 		}
 

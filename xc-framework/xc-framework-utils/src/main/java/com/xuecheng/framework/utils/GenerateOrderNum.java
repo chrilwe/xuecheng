@@ -28,7 +28,7 @@ public class GenerateOrderNum {
      * 生成非重复订单号，理论上限1毫秒1000个，可扩展
      * @param tname 测试用
      */
-    public synchronized void generate(String tname) {
+    public synchronized String generate() {
         try {
             // 最终生成的订单号
             String finOrderNum = "";
@@ -43,12 +43,14 @@ public class GenerateOrderNum {
                 String countStr=maxPerMSECSize +orderNumCount+"";
                 finOrderNum=nowLong+countStr.substring(1);
                 orderNumCount++;
-                System.out.println(finOrderNum + "--" + Thread.currentThread().getName() + "::" + tname );
+                //System.out.println(finOrderNum + "--" + Thread.currentThread().getName() + "::" + tname );
                 // Thread.sleep(1000);
+                return finOrderNum;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     public static void main(String[] args) {
@@ -74,6 +76,7 @@ public class GenerateOrderNum {
         } catch (Exception e) {
             e.printStackTrace();
         }*/
-        System.out.println(System.currentTimeMillis());
+    	GenerateOrderNum generateOrderNum = new GenerateOrderNum();
+        System.out.println(generateOrderNum.generate());
     }
 }
