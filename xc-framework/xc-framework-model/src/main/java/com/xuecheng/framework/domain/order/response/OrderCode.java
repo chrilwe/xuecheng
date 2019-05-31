@@ -38,7 +38,8 @@ public enum OrderCode implements com.xuecheng.framework.common.model.response.Re
     PAY_SELLERID_OR_SELLEREMAIL_ERROR(false,41024,"支付宝通知商户的商家支付宝账号不正确！！"),
     PAY_ORDER_MONENY_ISNOSAME(false,41025,"支付宝通知商户的支付总金额与商家订单的总金额不一致！！！"),
     USER_NO_LOGIN(false,41026,"用户未登录！！！"),
-    JWT_USERTOKEN_ERROR(false,41027,"获取UserToken失败！！！");
+    JWT_USERTOKEN_ERROR(false,41027,"获取UserToken失败！！！"),
+    REFUND_QUERY_FAILED(false,41028,"查询退款失败！！！");
 	
 
     //操作代码

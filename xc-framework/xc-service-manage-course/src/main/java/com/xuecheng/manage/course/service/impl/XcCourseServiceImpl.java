@@ -26,6 +26,7 @@ import com.xuecheng.framework.domain.cms.CmsPage;
 import com.xuecheng.framework.domain.cms.CmsPageParam;
 import com.xuecheng.framework.domain.cms.response.CmsCode;
 import com.xuecheng.framework.domain.cms.response.CmsPageResult;
+import com.xuecheng.framework.domain.cms.status.PageStatus;
 import com.xuecheng.framework.domain.course.CourseBase;
 import com.xuecheng.framework.domain.course.CourseMarket;
 import com.xuecheng.framework.domain.course.CourseOff;
@@ -266,7 +267,7 @@ public class XcCourseServiceImpl implements XcCourseService {
 		message.setRoutingKey(MessageMQList.ROUTINGKEY_ADDCOURSETOES);
 		ResponseResult r1 = messageClient.readySendMessage(message);
 		//更新发布状态
-		courseBaseMapper.updateCourseStatusById("202002", courseId);//202001未发布,202002已发布
+		courseBaseMapper.updateCourseStatusById(PageStatus.YES, courseId);//202001未发布,202002已发布
 		//生成发布课程信息
 		//根据courseId进行表连接查询获取coursePub信息
 		CoursePub coursePub = courseBaseMapper.findCoursePubByCourseId(courseId);
@@ -288,7 +289,7 @@ public class XcCourseServiceImpl implements XcCourseService {
 			ExceptionCast.cast(CourseCode.COURSE_COMMIT_NULL);
 		}
 		//添加页面CmsPage
-		CmsPage cmsPage = this.buildCmsPage(courseId, templateId, "课程详情页", "已发布", siteId);
+		CmsPage cmsPage = this.buildCmsPage(courseId, templateId, "课程详情页", PageStatus.NO, siteId);
 		CmsPageResult result = cmsPageClient.add(cmsPage);
 				
 		//添加页面数据模型

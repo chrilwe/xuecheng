@@ -5,7 +5,8 @@ import com.xuecheng.framework.common.model.response.ResultCode;
 public enum JwtCode implements ResultCode {
 	
 	JWT_GETUSERJWT_ISNULL(false,10,"获取的令牌信息为空！！！"),
-	JWT_USERJWT_ISNULL(false,11,"生成令牌的参数错误！！");
+	JWT_USERJWT_ISNULL(false,11,"生成令牌的参数错误！！"),
+	JWT_PARSE_ERROR(false,12,"解析jwt令牌失败！！！");
 	private boolean success;
 	private int code;
 	private String message;

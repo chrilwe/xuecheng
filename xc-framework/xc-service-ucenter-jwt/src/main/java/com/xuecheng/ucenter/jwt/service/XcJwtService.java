@@ -14,7 +14,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.security.jwt.Jwt;
 import org.springframework.security.jwt.JwtHelper;
 import org.springframework.security.jwt.crypto.sign.RsaSigner;
-import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
+import org.springframework.security.rsa.crypto.KeyStoreKeyFactory;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
@@ -23,10 +23,16 @@ import com.xuecheng.framework.domain.ucenter.ext.UserToken;
 import com.xuecheng.framework.domain.ucenter.response.JwtCode;
 import com.xuecheng.framework.utils.XcOauth2Util;
 import com.xuecheng.framework.utils.XcOauth2Util.UserJwt;
-import com.xuecheng.ucenter.jwt.config.JwtConfiguration;
 
 @Service
 public class XcJwtService {
+	
+	@Value("${encrypt.key-store.secret}")
+	private String secret;
+	@Value("${encrypt.key-store.alias}")
+	private String alias;
+	@Value("${encrypt.key-store.password}")
+	private String password;
 	
 	/**
 	 * 从请求中获取userjwt
@@ -59,9 +65,9 @@ public class XcJwtService {
 		//获取证书
 		Resource resource = new ClassPathResource("xc.keystore");
 		//秘钥工厂
-		KeyStoreKeyFactory keyStoreFactory = new KeyStoreKeyFactory(resource,JwtConfiguration.secret.toCharArray());
+		KeyStoreKeyFactory keyStoreFactory = new KeyStoreKeyFactory(resource,secret.toCharArray());
 		//秘钥对
-		KeyPair keyPair = keyStoreFactory.getKeyPair(JwtConfiguration.alias, JwtConfiguration.password.toCharArray());
+		KeyPair keyPair = keyStoreFactory.getKeyPair(alias, password.toCharArray());
 		//私钥
 		RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
 		//定义playload

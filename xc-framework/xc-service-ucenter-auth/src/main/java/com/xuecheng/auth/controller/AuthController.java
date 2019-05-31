@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +18,7 @@ import com.xuecheng.framework.common.model.response.CommonCode;
 import com.xuecheng.framework.common.model.response.ResponseResult;
 import com.xuecheng.framework.common.web.BaseController;
 import com.xuecheng.framework.domain.ucenter.ext.AuthToken;
+import com.xuecheng.framework.domain.ucenter.ext.UserTokenStore;
 import com.xuecheng.framework.domain.ucenter.request.LoginRequest;
 import com.xuecheng.framework.domain.ucenter.response.AuthCode;
 import com.xuecheng.framework.domain.ucenter.response.LoginResult;
@@ -39,7 +41,7 @@ public class AuthController extends BaseController implements AuthControllerApi 
 	private int cookieMaxAge;
 
 	/**
-	 * 登录认证，获取令牌
+	 * 登录认证，获取jwt令牌和身份令牌，前端将jwt令牌放到头部，身份令牌放到cookie中
 	 */
 	@Override
 	@PostMapping("/userlogin")
@@ -50,35 +52,45 @@ public class AuthController extends BaseController implements AuthControllerApi 
 		String username = loginRequest.getUsername();
 		String verifycode = loginRequest.getVerifycode();
 		if (StringUtils.isEmpty(verifycode)) {
-			return new LoginResult(AuthCode.AUTH_VERIFYCODE_NONE, null);// 请输入验证码
+			return new LoginResult(AuthCode.AUTH_VERIFYCODE_NONE, null, null);// 请输入验证码
 		}
 		if (StringUtils.isEmpty(username)) {
-			return new LoginResult(AuthCode.AUTH_USERNAME_NONE, null);// 请输入账号
+			return new LoginResult(AuthCode.AUTH_USERNAME_NONE, null, null);// 请输入账号
 		}
 		if (StringUtils.isEmpty(password)) {
-			return new LoginResult(AuthCode.AUTH_PASSWORD_NONE, null);// 请输入密码
+			return new LoginResult(AuthCode.AUTH_PASSWORD_NONE, null, null);// 请输入密码
 		}
 
 		// TODO 校验验证码是否正确
 
 		// 申请令牌
 		authToken = authService.login(username, password, clientId, clientSecret);
-		if (authToken == null) {
+		if (authToken == null || StringUtils.isEmpty(authToken.getAccess_token()) 
+				|| StringUtils.isEmpty(authToken.getJwt_token())) {
 			System.out.println("令牌申请失败");
-			return new LoginResult(CommonCode.SERVER_ERROR, null);
+			return new LoginResult(CommonCode.SERVER_ERROR, null, null);
 		}
 
-		// 将身份令牌放到cookie中
-		CookieUtil.addCookie(response, domain, "/xuecheng", "xuecheng", authToken.getAccess_token(), cookieMaxAge,
-				true);
-
-		return new LoginResult(CommonCode.SUCCESS, authToken.getAccess_token());
+		return new LoginResult(CommonCode.SUCCESS,authToken.getJwt_token(),authToken.getAccess_token());
 	}
-
+	
+	/**
+	 * 注销用户
+	 */
 	@Override
 	public ResponseResult logout() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	/**
+	 * 根据身份令牌查询用户信息
+	 */
+	@Override
+	@GetMapping("/get/userinfo/{accessToken}")
+	public UserTokenStore getUserInfoByAccessToken(@PathVariable("accessToken")String accessToken) {
+		
+		return authService.getUserInfoByAccessToken(accessToken, request);
 	}
 
 }

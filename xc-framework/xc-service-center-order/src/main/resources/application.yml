@@ -22,6 +22,7 @@ xuecheng:
   order: 
     store_id: 12
     order_pay_no_ttl: 15 #订单支付超时时间（分钟）
+    log_path: F:/xuecheng/logs/
 
 mybatis:
   config-location: classpath:mybatis/mybatis-config.xml

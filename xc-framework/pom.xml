@@ -195,5 +195,6 @@
 		<module>xc-service-base-paysystem</module>
 		<module>xc-service-center-order</module>
 		<module>xc-service-ucenter-jwt</module>
+		<module>xc-service-manage-lottery</module>
 	</modules>
 </project>

@@ -16,13 +16,18 @@ import org.springframework.web.bind.annotation.RestController;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.response.AlipayOpenAuthTokenAppResponse;
+import com.alipay.api.response.AlipayTradeFastpayRefundQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.xuecheng.framework.api.XcPayControllerApi;
+import com.xuecheng.framework.common.model.response.CommonCode;
 import com.xuecheng.framework.common.web.BaseController;
 import com.xuecheng.framework.domain.order.response.PayOrderResult;
 import com.xuecheng.framework.domain.order.response.PayQrcodeResult;
+import com.xuecheng.framework.domain.order.response.PayRefundResult;
+import com.xuecheng.framework.domain.order.response.QueryRefundResult;
 import com.xuecheng.paysystem.alipay.trade.config.Configs;
 import com.xuecheng.paysystem.alipay.trade.model.result.AlipayF2FPayResult;
+import com.xuecheng.paysystem.service.AlipayRefundQueryService;
 import com.xuecheng.paysystem.service.AlipayService;
 
 @RestController
@@ -31,6 +36,8 @@ public class XcPayController extends BaseController implements XcPayControllerAp
 	
 	@Autowired
 	private AlipayService alipayService;
+	@Autowired
+	private AlipayRefundQueryService alipayRefundQueryService;
 	
 	/**
 	 * 支付宝生成二维码连接地址
@@ -79,13 +86,19 @@ public class XcPayController extends BaseController implements XcPayControllerAp
 	@GetMapping("/alipay/trade/query/{orderNum}")
 	public PayOrderResult alipayTradeQuery(@PathVariable("orderNum")String orderNum) {
 		AlipayF2FPayResult alipayTradeQuery = alipayService.alipayTradeQuery(orderNum);
+		PayOrderResult result = new PayOrderResult();
 		if(alipayTradeQuery.isTradeSuccess()) {
-			PayOrderResult result = new PayOrderResult();
 			result.setCode(Integer.parseInt(alipayTradeQuery.getResponse().getCode()));
 			result.setOrderNumber(alipayTradeQuery.getResponse().getTradeNo());
 			result.setMoney(Float.valueOf(alipayTradeQuery.getResponse().getTotalAmount()));
 			result.setSuccess(true);
 			return result;
+		} else {
+			//
+			result.setCode(Integer.parseInt(alipayTradeQuery.getResponse().getCode()));
+			result.setOrderNumber(alipayTradeQuery.getResponse().getTradeNo());
+			result.setMoney(Float.valueOf(alipayTradeQuery.getResponse().getTotalAmount()));
+			result.setSuccess(false);
 		}
 		return null;
 	}
@@ -95,9 +108,31 @@ public class XcPayController extends BaseController implements XcPayControllerAp
 	 */
 	@Override
 	@GetMapping("/alipay/refund/{orderNum}")
-	public AlipayTradeRefundResponse alipayTradeRefund(@PathVariable("orderNum")String orderNum) {
-		
-		return alipayService.alipayTradeRefund(orderNum);
+	public PayRefundResult alipayTradeRefund(@PathVariable("orderNum")String orderNum) {
+		AlipayTradeRefundResponse result = alipayService.alipayTradeRefund(orderNum);
+		if(result.isSuccess()) {
+			return new PayRefundResult(CommonCode.SUCCESS,result.getOutTradeNo(),result.getRefundFee());
+		}
+		return null;
+	}
+	
+	/**
+	 * 查询支付宝退款交易信息
+	 */
+	@Override
+	@GetMapping("/alipay/refund/query/{orderNum}")
+	public QueryRefundResult queryRefundTrade(@PathVariable("orderNumber")String orderNumber) {
+		QueryRefundResult result = null;
+		AlipayTradeFastpayRefundQueryResponse response = null;
+		try {
+			response = alipayRefundQueryService.queryRefundTrade(orderNumber);
+			if(response == null) {
+				result = new QueryRefundResult(CommonCode.FAIL,orderNumber,"","");
+			}
+		} catch (AlipayApiException e) {
+			result = new QueryRefundResult(CommonCode.FAIL,orderNumber,"","");
+		}
+		return new QueryRefundResult(CommonCode.SUCCESS,orderNumber,response.getRefundAmount(),response.getTotalAmount());
 	}
 	
 }

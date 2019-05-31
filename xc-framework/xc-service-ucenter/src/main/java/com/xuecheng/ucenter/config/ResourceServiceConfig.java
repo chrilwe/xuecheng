@@ -26,7 +26,7 @@ public class ResourceServiceConfig extends ResourceServerConfigurerAdapter {
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
 		http.authorizeRequests()
-			.antMatchers("/ucenter/getuserext").permitAll()//放行
+			.antMatchers("/ucenter/getuserext","/**").permitAll()//放行
 				.anyRequest().authenticated();
 	}
 	

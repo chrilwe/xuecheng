@@ -34,7 +34,8 @@ xuecheng:
     refund_ttl: 120 #交易退款超时时间
     store_id: 12
     pay_ttl: 3m #支付超时
-     
+  log: 
+    path: F:/xuecheng/log/
 
 eureka: 
   client: #客户端注册进eureka服务列表内

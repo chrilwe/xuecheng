@@ -1,5 +1,5 @@
 server:
-  port: 80000
+  port: 12345
 spring: 
   application:
     name: xc-service-ucenter-jwt

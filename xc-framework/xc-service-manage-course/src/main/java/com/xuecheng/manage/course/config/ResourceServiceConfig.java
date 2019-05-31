@@ -16,6 +16,7 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Res
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.web.client.RestTemplate;
 @Configuration
 @EnableResourceServer
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)//激活权限注解
@@ -56,6 +57,12 @@ public class ResourceServiceConfig extends ResourceServerConfigurerAdapter {
 		} catch (Exception e) {
 			return null;
 		}
+	}
+	
+	@Bean
+	public RestTemplate restTemplate() {
+		
+		return new RestTemplate();
 	}
 
 }

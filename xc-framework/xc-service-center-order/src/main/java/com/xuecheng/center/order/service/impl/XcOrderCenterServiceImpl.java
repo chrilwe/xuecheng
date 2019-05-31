@@ -3,20 +3,27 @@ package com.xuecheng.center.order.service.impl;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.druid.util.StringUtils;
+import com.alibaba.fastjson.JSON;
 import com.xuecheng.center.order.client.XcCourseClient;
 import com.xuecheng.center.order.client.XcJwtClient;
 import com.xuecheng.center.order.mapper.XcOrdersDetailMapper;
 import com.xuecheng.center.order.mapper.XcOrdersMapper;
 import com.xuecheng.center.order.mapper.XcOrdersPayMapper;
 import com.xuecheng.center.order.service.XcOrderCenterService;
+import com.xuecheng.center.order.task.LogTask;
+import com.xuecheng.center.order.task.OrderTask;
+import com.xuecheng.center.order.task.TaskPool;
 import com.xuecheng.framework.common.exception.ExceptionCast;
 import com.xuecheng.framework.common.model.response.CommonCode;
 import com.xuecheng.framework.common.model.response.ResponseResult;
@@ -38,7 +45,6 @@ import com.xuecheng.framework.utils.XcOauth2Util.UserJwt;
 
 @Service
 public class XcOrderCenterServiceImpl implements XcOrderCenterService {
-	
 	@Autowired
 	private XcOrdersMapper xcOrdersMapper;
 	@Autowired
@@ -47,6 +53,9 @@ public class XcOrderCenterServiceImpl implements XcOrderCenterService {
 	private XcOrdersDetailMapper xcOrdersDetailMapper;
 	@Autowired
 	private XcCourseClient xcCourseClient;
+	
+	@Value("${xuecheng.order.log_path}")
+	private String log_path;
 	
 	/**
 	 * 创建订单
@@ -112,6 +121,12 @@ public class XcOrderCenterServiceImpl implements XcOrderCenterService {
 		xcOrdersPay.setOrderNumber(orderNumber);
 		xcOrdersPay.setStatus(XcOrderStatus.PAY_NO);
 		xcOrdersPayMapper.add(xcOrdersPay);
+		
+		//订单创建完成，创建监控订单是否超时任务
+		TaskPool taskPool = TaskPool.getInstance();
+		taskPool.submit(new OrderTask(orderNumber));
+		//生成购买日志
+		taskPool.submit(new LogTask(log_path,JSON.toJSONString(xcOrdersDetail)));
 		return new CreateOrderResult(CommonCode.SUCCESS,xcOrders);
 	}
 	

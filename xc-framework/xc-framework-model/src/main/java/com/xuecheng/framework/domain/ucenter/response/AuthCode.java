@@ -24,7 +24,10 @@ public enum AuthCode implements ResultCode {
     AUTH_AUTHTOKEN_ISNULL(false,23011,"支付宝令牌不存在"),
     AUTH_QUERYUSERDETAILS_FAIL(false,23012,"根据支付宝令牌查询会员信息失败！！！"),
     AUTH_QUERYUSERDETAILS_ERROE(false,23013,"根据支付宝令牌查询会员信息异常！！！"),
-    AUTH_CREATE_JWT_ISNULL(false,23014,"没有生成令牌！！！");
+    AUTH_CREATE_JWT_ISNULL(false,23014,"没有生成令牌！！！"),
+    AUTH_ACCESS_TOKEN_NONE(false,23015,"身份令牌为空！！"),
+    AUTH_GET_USERINFO_FAIL(false,23016,"用户登录超时!!!"),
+    AUTH_REFRESH_TOKEN_FAIL(false,23017,"用户刷新令牌过期时间异常！！！");
 
     //操作代码
     @ApiModelProperty(value = "操作是否成功", example = "true", required = true)

@@ -1,5 +1,7 @@
 package com.xuecheng.auth.client;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,4 +18,10 @@ public interface XcJwtClient {
 	 */
 	@PostMapping("/getJwtToken")
 	public String createJwtToken(UserToken userToken);
+	
+	/**
+	 * 从请求中获取令牌信息
+	 */
+	@RequestMapping("/getUserJwt")
+	public UserToken getUserJwtFromHeader(HttpServletRequest request);
 }

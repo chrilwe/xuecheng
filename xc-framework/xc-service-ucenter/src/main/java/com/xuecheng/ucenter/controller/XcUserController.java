@@ -9,9 +9,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.xuecheng.framework.api.XcUserControllerApi;
+import com.xuecheng.framework.common.exception.ExceptionCast;
+import com.xuecheng.framework.common.model.response.CommonCode;
 import com.xuecheng.framework.common.model.response.ResponseResult;
+import com.xuecheng.framework.domain.ucenter.XcUser;
 import com.xuecheng.framework.domain.ucenter.ext.XcMenuExt;
 import com.xuecheng.framework.domain.ucenter.ext.XcUserExt;
+import com.xuecheng.framework.domain.ucenter.response.UcenterCode;
 import com.xuecheng.ucenter.service.XcUserService;
 
 @RestController
@@ -44,9 +48,9 @@ public class XcUserController implements XcUserControllerApi {
 
 	@Override
 	@GetMapping("/findbyid")
-	public XcUserExt findByUserId(String userId) {
-		// TODO Auto-generated method stub
-		return null;
+	public XcUser findByUserId(@RequestParam("username")String userId) {
+		
+		return xcUserService.findByUserid(userId);
 	}
 	
 	/**
@@ -55,7 +59,31 @@ public class XcUserController implements XcUserControllerApi {
 	@Override
 	@PostMapping("/register")
 	public ResponseResult register(XcUserExt xcUserExt) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		return xcUserService.register(xcUserExt);
+	}
+	
+	/**
+	 * 手机号码校验
+	 */
+	@Override
+	public ResponseResult checkPhone(String phone) {
+		XcUser xcUser = xcUserService.findByPhone(phone);
+		if(xcUser != null) {
+			ExceptionCast.cast(UcenterCode.UCENTER_PHONE_ERROR);
+		}
+		return new ResponseResult(CommonCode.SUCCESS);
+	}
+	
+	/**
+	 * 邮箱校验
+	 */
+	@Override
+	public ResponseResult checkEmail(String email) {
+		XcUser xcUser = xcUserService.findByEmail(email);
+		if(xcUser != null) {
+			ExceptionCast.cast(UcenterCode.UCENTER_EMAIL_ERROR);
+		}
+		return new ResponseResult(CommonCode.SUCCESS);
 	}
 }

@@ -3,6 +3,12 @@
 <mapper namespace="com.xuecheng.ucenter.mapper.XcCompanyUserMapper">
 	<select id="findByUserId" parameterType="String"
 		resultType="com.xuecheng.framework.domain.ucenter.XcCompanyUser">
-		select id,company_id as companyId from xc_company_user where user_id=#{userId}
+		select id,company_id as companyId from xc_company_user
+		where user_id=#{userId}
 	</select>
+	<insert id="add" parameterType="com.xuecheng.framework.domain.ucenter.XcCompanyUser">
+		insert into
+		xc_company_user(id,company_id,user_id)
+		values(id=#{id},company_id=#{companyId},user_id=#{userId})
+	</insert>
 </mapper>

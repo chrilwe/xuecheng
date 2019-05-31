@@ -8,7 +8,8 @@ public enum MessageCode implements ResultCode {
 	MESSAGE_ISNOT_EXISTS(false,1002,"消息不存在"),
 	MESSAGE_STATUS_ERROR(false,1003,"消息状态异常！"),
 	MESSAGE_ALREAD_DEAD(false,1004,"消息已进入死亡！"),
-	MESSAGE_CREATENODE_TIMEOUT(false,1005,"获取分布式锁超时！");
+	MESSAGE_CREATENODE_TIMEOUT(false,1005,"获取分布式锁超时！"),
+	MESSAGE_READYSENDING_ERROR(false,1006,"消息预发送异常！！！");
 	
 	//操作是否成功
     boolean success;

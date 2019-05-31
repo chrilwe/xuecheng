@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -14,7 +15,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.util.UriEncoder;
 
@@ -36,6 +36,11 @@ import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.xuecheng.framework.common.exception.ExceptionCast;
 import com.xuecheng.framework.common.model.response.CommonCode;
+import com.xuecheng.framework.common.model.response.ResponseResult;
+import com.xuecheng.framework.domain.message.Message;
+import com.xuecheng.framework.domain.message.MessageMQList;
+import com.xuecheng.framework.domain.message.MessageStatus;
+import com.xuecheng.framework.domain.message.response.MessageCode;
 import com.xuecheng.framework.domain.order.XcOrders;
 import com.xuecheng.framework.domain.order.XcOrdersDetail;
 import com.xuecheng.framework.domain.order.XcOrdersPay;
@@ -62,6 +67,7 @@ import com.xuecheng.paysystem.alipay.trade.model.result.AlipayF2FQueryResult;
 import com.xuecheng.paysystem.alipay.trade.model.result.AlipayF2FRefundResult;
 import com.xuecheng.paysystem.alipay.trade.service.AlipayTradeService;
 import com.xuecheng.paysystem.alipay.trade.utils.Utils;
+import com.xuecheng.paysystem.client.XcMessageClient;
 import com.xuecheng.paysystem.client.XcOrderClient;
 import com.xuecheng.paysystem.demo.Main;
 import com.xuecheng.paysystem.service.AlipayService;
@@ -76,9 +82,9 @@ public class AlipayServiceImpl implements AlipayService {
 	@Autowired
 	private AlipayTradeService tradeService;
 	@Autowired
-	private StringRedisTemplate stringRedisTemplate;
-	@Autowired
 	private XcOrderClient xcOrderClient;
+	@Autowired
+	private XcMessageClient xcMessageClient;
 
 	@Value("${xuecheng.alipay.refund_ttl}")
 	private long refundTtl;// 退款超时（分钟）
@@ -209,11 +215,31 @@ public class AlipayServiceImpl implements AlipayService {
 				
 				//判断支付金额是否正确
 				String total_amount = params.get("total_amount");
-				if(!total_amount.equals(String.valueOf(orderResult.getXcOrders().getPrice()))) {
+				int price = orderResult.getXcOrders().getPrice();//订单实际金额（分）
+				String realPrice = (price % 100 < 0)?("0."+price):((price/100)+"."+(price - price/100));
+				if(!total_amount.equals(realPrice)) {
 					ExceptionCast.cast(OrderCode.PAY_ORDER_MONENY_ISNOSAME);
 				}
 				
-				//执行相关业务逻辑
+				//修改订单，自动添加我的课程
+				String messageId = UUID.randomUUID().toString();
+				Message message = new Message();
+				message.setAreadyDead("NO");
+				message.setCreateTime(new Date());
+				message.setId(messageId);
+				message.setMessageBody(JSON.toJSONString(orderResult));
+				message.setMessageType("json");
+				message.setRabbitExchange(MessageMQList.EXCHANGE_TOPIC_INFORM);
+				message.setRabbitQueue(MessageMQList.QUEUE_INFORM_AUTOCHOOSECOURSE);
+				message.setRoutingKey(MessageMQList.ROUTINGKEY_AUTOCHOOSECOURSE);
+				message.setResendTime(0);
+				message.setStatus(MessageStatus.READY_SENDING);
+				try {
+					ResponseResult readySendMessageResult = xcMessageClient.readySendMessage(message);
+				} catch (Exception e) {
+					ExceptionCast.cast(MessageCode.MESSAGE_READYSENDING_ERROR);
+				}
+				
 				XcOrders xcOrders = orderResult.getXcOrders();
 				xcOrders.setEndTime(new Date());
 				xcOrders.setStatus(XcOrderStatus.PAY_YES);
@@ -228,7 +254,8 @@ public class AlipayServiceImpl implements AlipayService {
 				updateOrderRequest.setXcOrdersDetails(xcOrdersDetails);
 				updateOrderRequest.setXcOrdersPay(xcOrdersPay);
 				OrderResult updateOrder = xcOrderClient.updateOrder(updateOrderRequest);
-				//TODO 分布式事务：自动添加选课
+				
+				xcMessageClient.confirmSendMessage(messageId);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -246,15 +273,8 @@ public class AlipayServiceImpl implements AlipayService {
 			ExceptionCast.cast(OrderCode.ORDER_NUMBER_ISNULL);
 		}
 
-		// 从redis中查询app_auth_token
-		String appAuthToken = stringRedisTemplate.boundValueOps("app_auth_token").get();
-		if (StringUtils.isEmpty(appAuthToken) || "".equals(appAuthToken)) {
-			ExceptionCast.cast(OrderCode.PAY_APPAUTHTOKEN_NULL);
-		}
-		log.info("从redis中查询app_auth_token:" + appAuthToken);
-
 		// 创建查询支付订单请求
-		AlipayTradeQueryRequestBuilder queryBuiler = new AlipayTradeQueryRequestBuilder().setAppAuthToken(appAuthToken)
+		AlipayTradeQueryRequestBuilder queryBuiler = new AlipayTradeQueryRequestBuilder()
 				.setOutTradeNo(orderNum);
 		// 校验创建的请求
 		validateBuilder(queryBuiler);
@@ -481,6 +501,24 @@ public class AlipayServiceImpl implements AlipayService {
 				switch (resultRefund.getTradeStatus()) {
 				case SUCCESS:
 					log.info("支付宝退款成功: )");
+					//退款成功修改订单状态,如果修改订单状态过程发生异常，人工干预处理
+					try {
+						XcOrders xcOrders = result.getXcOrders();
+						List<XcOrdersDetail> xcOrdersDetails = result.getXcOrdersDetails();
+						XcOrdersPay xcOrdersPay = result.getXcOrdersPay();
+						UpdateOrderRequest updateOrderRequest = new UpdateOrderRequest();
+						xcOrders.setStatus(XcOrderStatus.PAYING);
+						xcOrdersPay.setStatus(XcOrderStatus.PAYING);
+						updateOrderRequest.setXcOrders(xcOrders);
+						updateOrderRequest.setXcOrdersDetails(xcOrdersDetails);
+						updateOrderRequest.setXcOrdersPay(xcOrdersPay);
+						OrderResult updateResult = xcOrderClient.updateOrder(updateOrderRequest);
+						if(!updateResult.isSuccess()) {
+							ExceptionCast.cast(OrderCode.PAY_REFUND_UNKNOWN);
+						}
+					} catch (Exception e) {
+						ExceptionCast.cast(OrderCode.PAY_REFUND_UNKNOWN);
+					}
 					break;
 
 				case FAILED:

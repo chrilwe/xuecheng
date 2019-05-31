@@ -5,6 +5,8 @@ import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,12 +26,17 @@ import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
 import com.alibaba.fastjson.JSON;
+import com.xuecheng.auth.client.XcJwtClient;
 import com.xuecheng.auth.service.AuthService;
 import com.xuecheng.framework.common.client.XcServiceList;
 import com.xuecheng.framework.common.exception.ExceptionCast;
+import com.xuecheng.framework.common.model.response.CommonCode;
 import com.xuecheng.framework.domain.ucenter.ext.AuthToken;
+import com.xuecheng.framework.domain.ucenter.ext.UserToken;
+import com.xuecheng.framework.domain.ucenter.ext.UserTokenStore;
 import com.xuecheng.framework.domain.ucenter.request.LoginRequest;
 import com.xuecheng.framework.domain.ucenter.response.AuthCode;
+import com.xuecheng.framework.domain.ucenter.response.JwtCode;
 import com.xuecheng.framework.domain.ucenter.response.LoginResult;
 
 @Service
@@ -41,9 +48,15 @@ public class AuthServiceImpl implements AuthService {
 	private RestTemplate restTemplate;
 	@Autowired
 	private StringRedisTemplate stringRedisTemplate;
+	@Autowired
+	private XcJwtClient xcJwtClient;
 	
 	@Value("${auth.tokenValiditySeconds}")
 	private long ttl;
+	@Value("${auth.max_query_retry}")
+	private int max_query_retry;
+	@Value("${auth.query_duration}")
+	private int query_duration;
 	
 	@Override
 	public AuthToken login(String username, String password, String clientId, String clientSecret) {
@@ -137,5 +150,65 @@ public class AuthServiceImpl implements AuthService {
 		stringRedisTemplate.boundValueOps(key).set(value, ttl, TimeUnit.SECONDS);
 		Long expire = stringRedisTemplate.getExpire(key, TimeUnit.SECONDS);
 		return expire > 0;
+	}
+	
+	/**
+	 * 根据身份令牌获取用户信息
+	 */
+	@Override
+	public UserTokenStore getUserInfoByAccessToken(String accessToken, HttpServletRequest request) {
+		if(StringUtils.isEmpty(accessToken)) {
+			ExceptionCast.cast(AuthCode.AUTH_ACCESS_TOKEN_NONE);
+		}
+		//根据身份令牌，从redis中获取用户信息
+		String authTokenJson = stringRedisTemplate.boundValueOps(accessToken).get();
+		if(StringUtils.isEmpty(authTokenJson)) {
+			ExceptionCast.cast(AuthCode.AUTH_GET_USERINFO_FAIL);
+		}
+		AuthToken authToken = JSON.parseObject(authTokenJson,AuthToken.class);
+		String jwt = authToken.getJwt_token();
+		
+		//将jwt令牌解析出来
+		UserToken userToken = this.loopGetUserToken(request);
+		
+		//刷新用户登录过期时间
+		try {
+			stringRedisTemplate.expire(accessToken, ttl, TimeUnit.SECONDS);
+		} catch (Exception e) {
+			ExceptionCast.cast(AuthCode.AUTH_REFRESH_TOKEN_FAIL);
+		}
+		
+		UserTokenStore store = new UserTokenStore();
+		store.setAccess_token(accessToken);
+		store.setJwt_token(jwt);
+		store.setCompanyId(userToken.getCompanyId());
+		store.setRefresh_token(authToken.getRefresh_token());
+		store.setUserId(userToken.getUserId());
+		store.setUserPic(userToken.getUserPic());
+		store.setUtype(userToken.getUtype());
+		return store;
+	}
+	
+	/**
+	 * 发起解析令牌请求异常，重试
+	 */
+	private UserToken loopGetUserToken(HttpServletRequest request) {
+		UserToken userToken = null;
+		for(int i = 0;i < max_query_retry;i++) {
+			try {
+				userToken = xcJwtClient.getUserJwtFromHeader(request);
+				if(userToken == null) {
+					ExceptionCast.cast(JwtCode.JWT_PARSE_ERROR);
+				}
+				break;
+			} catch (Exception e) {
+				//查询次数超过最大次数，停止查询,抛出系统异常
+				if(i == max_query_retry) {
+					ExceptionCast.cast(JwtCode.JWT_PARSE_ERROR);
+				}
+				continue;
+			}
+		}
+		return userToken;
 	}
 }

@@ -1,8 +1,0 @@
-spring: 
-  cloud: 
-    config: 
-      name: application-eureka     #需要从github上读取的资源名称，注意没有yml后缀名
-      profile: dev #选取当前环境
-      label: master 
-      uri: http://localhost:3344      #SpringCloudConfig获取的服务地址
-

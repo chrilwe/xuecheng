@@ -3,86 +3,80 @@ package com.xuecheng.center.order.task;
 import java.util.Date;
 import java.util.List;
 
+import com.xuecheng.center.order.client.XcPayClient;
 import com.xuecheng.center.order.config.OrderConfiguration;
 import com.xuecheng.center.order.service.XcOrderCenterService;
-import com.xuecheng.center.order.service.XcOrderMonitorService;
 import com.xuecheng.center.order.utils.SpringBeanUtil;
 import com.xuecheng.framework.domain.order.XcOrders;
+import com.xuecheng.framework.domain.order.XcOrdersDetail;
 import com.xuecheng.framework.domain.order.XcOrdersPay;
 import com.xuecheng.framework.domain.order.ext.OrderExt;
 import com.xuecheng.framework.domain.order.request.QueryOrderListRequest;
+import com.xuecheng.framework.domain.order.response.OrderResult;
+import com.xuecheng.framework.domain.order.response.PayOrderResult;
 import com.xuecheng.framework.domain.order.response.QueryOrderListResult;
 import com.xuecheng.framework.domain.order.status.XcOrderStatus;
 import com.xuecheng.framework.utils.ZkSessionUtil;
 
 /**
- * 监控超时未完成支付订单
+ * 订单创建，开启一条线程监控订单支付状态
  * @author Administrator
  *
  */
 public class OrderTask implements Runnable {
+	private String orderNumber;
+	public OrderTask(String orderNumber) {
+		this.orderNumber = orderNumber;
+	}
 
 	@Override
 	public void run() {
-		while(true) {
-			try {
-				Thread.sleep(5000);
-				long currentTime = System.currentTimeMillis();
-				//从spring容器中获取XcOrderMonitorService
-				XcOrderMonitorService xcOrderMonitorService = SpringBeanUtil.getInstance().getBean(XcOrderMonitorService.class);
-				
-				//查询未支付订单，判断是否超时，超时订单自动取消
-				QueryOrderListRequest queryOrdersListRequest = new QueryOrderListRequest();
-				queryOrdersListRequest.setCurrentPage(1);
-				queryOrdersListRequest.setPageSize(100);
-				queryOrdersListRequest.setStatus(XcOrderStatus.PAY_NO);
-				QueryOrderListResult queryOrderListResult = xcOrderMonitorService.queryOrderList(queryOrdersListRequest);
-				if(queryOrderListResult.getTotal() == 0 && queryOrderListResult.getList() == null) {
+		try {
+			//线程休眠到过期时间
+			Thread.sleep(OrderConfiguration.order_pay_no_ttl);
+			
+			//查询订单
+			SpringBeanUtil util = SpringBeanUtil.getInstance();
+			XcOrderCenterService xcOrderCenterService = util.getBean(XcOrderCenterService.class);
+			OrderResult orderResult = xcOrderCenterService.queryOrdersByOrderNum(orderNumber);
+			
+			//判断订单是否支付成功,支付成功结束线程，未支付取消订单,支付中检查支付宝订单是否支付成功，支付成功结束线程
+			XcOrdersPay xcOrdersPay = orderResult.getXcOrdersPay();
+			XcOrders xcOrders = orderResult.getXcOrders();
+			List<XcOrdersDetail> xcOrdersDetails = orderResult.getXcOrdersDetails();
+			if(xcOrdersPay.getStatus().equals(XcOrderStatus.PAY_YES)) {
+				return;
+			}
+			
+			//支付超时，撤销订单
+			if(xcOrdersPay.getStatus().equals(XcOrderStatus.PAY_NO)) {
+				xcOrders.setStatus(XcOrderStatus.PAY_CANCEL);
+				xcOrdersPay.setStatus(XcOrderStatus.PAY_CANCEL);
+				xcOrderCenterService.updateOrder(xcOrders, xcOrdersDetails, xcOrdersPay);
+			}
+			
+			//支付中，查询支付宝订单状态，支付成功修改订单状态成功，支付失败，取消订单
+			XcPayClient xcPayClient = util.getBean(XcPayClient.class);
+			PayOrderResult result = null;
+			for(int i = 0;i < 10;i++) {
+				try {
+					result = xcPayClient.alipayTradeQuery(orderNumber);
+					break;
+				} catch (Exception e) {
 					continue;
 				}
-				List<OrderExt> list = queryOrderListResult.getList();
-				for(OrderExt orderExt : list) {
-					Date startTime = orderExt.getXcOrders().getStartTime();
-					if((currentTime - startTime.getTime())/1000/60 > OrderConfiguration.order_pay_no_ttl) {
-						//其他线程更新相同的订单，只允许一条线程更新成功
-						ZkSessionUtil zkUtil = ZkSessionUtil.getInstance();
-						boolean createNode = zkUtil.createNode("/"+orderExt.getXcOrders().getOrderNumber(), "");
-						if(!createNode) {
-							continue;
-						}
-						xcOrderMonitorService.updateXcOrdersAndXcOrdersPay(orderExt.getXcOrders(), orderExt.getXcOrdersPay());
-						zkUtil.deleteNode("/"+orderExt.getXcOrders());
-					}
-				}
-				
-				int countResult = queryOrderListResult.getTotal()%queryOrdersListRequest.getPageSize();
-				int count = queryOrderListResult.getTotal()/queryOrdersListRequest.getPageSize();
-				int totalPage = countResult == 0?count:(count+1);
-				for(int i = 1;i < totalPage;i++) {
-					queryOrdersListRequest.setCurrentPage(i);
-					queryOrdersListRequest.setPageSize(100);
-					queryOrdersListRequest.setStatus(XcOrderStatus.PAY_NO);
-					QueryOrderListResult orderListResult = xcOrderMonitorService.queryOrderList(queryOrdersListRequest);
-					if(orderListResult.getTotal() == 0 && orderListResult.getList() == null) {
-						continue;
-					}
-		
-					List<OrderExt> list1 = queryOrderListResult.getList();
-					for(OrderExt orderExt : list1) {
-						//其他线程更新相同的订单，只允许一条线程更新成功
-						ZkSessionUtil zkUtil = ZkSessionUtil.getInstance();
-						boolean createNode = zkUtil.createNode("/"+orderExt.getXcOrders().getOrderNumber(), "");
-						if(!createNode) {
-							continue;
-						}
-						xcOrderMonitorService.updateXcOrdersAndXcOrdersPay(orderExt.getXcOrders(), orderExt.getXcOrdersPay());
-						zkUtil.deleteNode("/"+orderExt.getXcOrders());
-					}
-				}
-				
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
+			if(result.isSuccess()) {
+				xcOrders.setStatus(XcOrderStatus.PAY_YES);
+				xcOrdersPay.setStatus(XcOrderStatus.PAY_YES);
+				xcOrderCenterService.updateOrder(xcOrders, xcOrdersDetails, xcOrdersPay);
+			} else {
+				xcOrders.setStatus(XcOrderStatus.PAY_CANCEL);
+				xcOrdersPay.setStatus(XcOrderStatus.PAY_CANCEL);
+				xcOrderCenterService.updateOrder(xcOrders, xcOrdersDetails, xcOrdersPay);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	

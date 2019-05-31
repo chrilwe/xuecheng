@@ -19,7 +19,11 @@ public class OrderResult extends ResponseResult {
     private XcOrders xcOrders;
     private XcOrdersPay xcOrdersPay;
     private List<XcOrdersDetail> xcOrdersDetails;
-    public OrderResult(ResultCode resultCode) {
+    
+    public OrderResult() {
+		super();
+	}
+	public OrderResult(ResultCode resultCode) {
 		super(resultCode);
 	}
 	public OrderResult(ResultCode resultCode, XcOrders xcOrders) {

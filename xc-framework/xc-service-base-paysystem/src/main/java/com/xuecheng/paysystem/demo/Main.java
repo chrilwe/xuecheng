@@ -1,8 +1,15 @@
 package com.xuecheng.paysystem.demo;
 
 import com.alibaba.fastjson.JSON;
+import com.alipay.api.AlipayApiException;
+import com.alipay.api.AlipayClient;
 import com.alipay.api.AlipayResponse;
+import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.domain.TradeFundBill;
+import com.alipay.api.request.AlipayMarketingCdpAdvertiseCreateRequest;
+import com.alipay.api.request.AlipayTradeFastpayRefundQueryRequest;
+import com.alipay.api.response.AlipayMarketingCdpAdvertiseCreateResponse;
+import com.alipay.api.response.AlipayTradeFastpayRefundQueryResponse;
 import com.alipay.api.response.AlipayTradePrecreateResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.api.response.MonitorHeartbeatSynResponse;
@@ -104,15 +111,24 @@ public class Main {
         //        main.test_trade_pay(tradeService);
 
         // 测试当面付2.0生成支付二维码
-        String tradeNo = main.test_trade_precreate();
+        //String tradeNo = main.test_trade_precreate();
         
         // 测试查询当面付2.0交易
-               // main.test_trade_query(tradeNo);
+          //     main.test_trade_query("20190514160508218002");
 
         // 测试当面付2.0退货
-        //        main.test_trade_refund();
-        String redirectUrl = UriEncoder.encode("http://xuecheng.ngrok.xiaomiqiu.cn/pay/alipay/redirect");
-        System.out.println("-----redirectUrl:"+redirectUrl);
+            //    main.test_trade_refund();
+        
+        //测试退款查询
+        /*try {
+			main.test_query_refund();
+		} catch (AlipayApiException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+        
+        //创建广告
+        main.createAD();
     }
 
     // 测试系统商交易保障调度
@@ -341,10 +357,10 @@ public class Main {
     // 测试当面付2.0退款
     public void test_trade_refund() {
         // (必填) 外部订单号，需要退款交易的商户外部订单号
-        String outTradeNo = "tradepay14817938139942440181";
+        String outTradeNo = "20190514160508218002";
 
         // (必填) 退款金额，该金额必须小于等于订单的支付金额，单位为元
-        String refundAmount = "0.01";
+        String refundAmount = "0.10";
 
         // (可选，需要支持重复退货时必填) 商户退款请求号，相同支付宝交易号下的不同退款请求号对应同一笔交易的不同退款申请，
         // 对于相同支付宝交易号下多笔相同商户退款请求号的退款交易，支付宝只会进行一次退款
@@ -354,7 +370,7 @@ public class Main {
         String refundReason = "正常退款，用户买多了";
 
         // (必填) 商户门店编号，退款情况下可以为商家后台提供退款权限判定和统计等作用，详询支付宝技术支持
-        String storeId = "test_store_id";
+        String storeId = "12";
 
         // 创建退款请求builder，设置请求参数
         AlipayTradeRefundRequestBuilder builder = new AlipayTradeRefundRequestBuilder()
@@ -470,4 +486,42 @@ public class Main {
         return outTradeNo;
     }
     
+    //支付宝退款查询
+    public void test_query_refund() throws AlipayApiException {
+    	AlipayClient alipayClient = new DefaultAlipayClient("https://openapi.alipaydev.com/gateway.do","2016100100637111","MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCptjCm/V42TlbvLB64KuNP51hh86zjCldsO/HY+FUD6T0DrKqsZUsfIMk/pnsNSgbWYSOdhocV+sQ1D14MJU6d3jV7/XuTMbCeaQYgLybXe6gO5OeALkd67GWmCvC2lkaIaidgQVj1bww+pVZXWAawESDxRVcoOKE25MJZcha3zPwrrPUYrtIIf0uJB6lRmIhlU+TDWK3f6NxhgUt2z9cNqBIcX5a+0jE5ukcJeuzrt9HJB4WeIUcjmoz9+mCUXeY6/cUjCzndJyyk3T02neHXFndipIHSMbWsZPivAdKmPGdNQNyGIazzZzykC6UNpNmfI+1M1b3OO4S8CMPlJh75AgMBAAECggEAFUvnjwz8ZZQvFJRUxoebPsupK6GIcHU7wzlCgBepk3QRVAS25itP4fgbSQF7L4+6i+xkq7/V88wkEwR6qMuFsgnQbF7CwxXZNAe53RANr7y0uim/YzZrgeFoYA2/Zyo0b6nihxGsOCBXSQU2cH97V1zO5XfuF/4DPQA340GN2EKMSBLQBDnBwFyT9UUCIhKFozflFxUyEDQn4ZBdLZPznjJEGBSjONB/VQxd1bOWaotI2UFDcOHdmK0gBih5wYbHWh23a2yo7qx1bGqrL8XZny0GCYp3n2vYVZGzUqAeCQv/QOnsTYn0qia6vIOxiGp3TIbhJ4ugiKhGZB22f8HsgQKBgQDnkpMkOGmWQVRJIXFb31iu6S4kasjw5CuDVq6v6+EiGIMQJL2NPvgkdvDPr1wK3E1XJRo5Pti84iNzNeaTMM/+cQb8AeRpIPKNmUjZ1xvKlRMwXwY1hCF95472+xz4YYncmNjCsPDvEdLCO73xPxSgK6ucG4h7OQaRMQd59HrdCwKBgQC7nR0M6+tlzDNXg7J2EPvfx+216yrYtNKDMuiPp0lQyCLxtR6ya1DUzmBJd3Yp1pW0RfpZwLyiVQ29ig3UDOBOXDv3qX3W22pImwQ2uKCtg4yUAhvFhbzNJCZqKNRlcDbEE79Y2nljmv/n4OGvcgy/NcSXd6CuhvyzaANy2/yOiwKBgB9RLEMGugjO9vYY5rq0/spQ0KOuKVSiltvhOiiibsTsqbTiMxxJ+sb7qt97aKgzWOZDJ0O8oxUQRBkNngwj2s0fPgGQw/IPuZ26sCZ9t81y0bCF+VH9d4YObcAq/6T7k+hYZ2AVC9BZCbao26wnisOKhF/NPWzkrmWuSsOMc503AoGAa86VceZjJuTXH9O6ieOqiGXfL6kJvurxCJkJT/rlwzit88yK7iWCljZc1/qAePwonCWV/VsmSfWr5p1c4tvfTMftYZwQhpUglsYU/sjK88nizu4DPVZjLlI2jMwXeI6pubRLQOiR1m2r3Xe419Mmhf2EkTEZsRA6R3FegfLtRo8CgYALxmD4VnEt801MI0+SoyDYvYzu5CU7W2AxpPMtPhFD6QvXjFeCwSeF88gbk1jumn0F86bUnRXAuk0Wilna/yBEw7vc5DL3alO5uyggHah1pNTIu4FsAD6NCEvYz2RGa8Z7+KF+JvUF4vqRDzzO0ZJns+pterImWEHk6ZaJBkFwtA==","json","GBK","MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqHpkJozekaXfdg49yjx2/w534FP979QcZI0wnEcN3Z48UCrHCMR9PzQvwICibfmTiOXYj5IjvrHFOFeUQZCmfQKBHH/IsINP1RduM3T/rssUdsnteBONfWF8u9V2TnY84U5jvxkwMj9nzFp8AqgHME4XRy89/4XBvVTw4vukRQRBU4Tg5nA36dJDdNtcgyHcOj5dZauEEdzefIRRxkCusPzReKgrGo7NJhxjp52j+lI0akxIIRlNOJP0mUrwWmPFp4wPUXm9ATxMudS8yghfcp7hV2maJ4r1Ojbp5vsZwGNT2/pr7eZu2o5xgwDKpUniIpqs1n3m9YXR1lySClRSzwIDAQAB","RSA2");
+    	AlipayTradeFastpayRefundQueryRequest request = new AlipayTradeFastpayRefundQueryRequest();
+    	request.setBizContent("{" +
+    	"\"out_trade_no\":\"20190514160508218002\"," +
+    	"\"out_request_no\":\"20190514160508218002\"" +
+    	"  }");
+    	AlipayTradeFastpayRefundQueryResponse response = alipayClient.execute(request);
+    	if(response.isSuccess()){
+    		System.out.println("调用成功:"+JSON.toJSONString(response));
+    	} else {
+    		System.out.println("调用失败:"+JSON.toJSONString(response));
+    	}
+    }
+    
+    //广告创建
+    public void createAD() {
+    	AlipayClient alipayClient = new DefaultAlipayClient("https://openapi.alipaydev.com/gateway.do","2016100100637111","MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCptjCm/V42TlbvLB64KuNP51hh86zjCldsO/HY+FUD6T0DrKqsZUsfIMk/pnsNSgbWYSOdhocV+sQ1D14MJU6d3jV7/XuTMbCeaQYgLybXe6gO5OeALkd67GWmCvC2lkaIaidgQVj1bww+pVZXWAawESDxRVcoOKE25MJZcha3zPwrrPUYrtIIf0uJB6lRmIhlU+TDWK3f6NxhgUt2z9cNqBIcX5a+0jE5ukcJeuzrt9HJB4WeIUcjmoz9+mCUXeY6/cUjCzndJyyk3T02neHXFndipIHSMbWsZPivAdKmPGdNQNyGIazzZzykC6UNpNmfI+1M1b3OO4S8CMPlJh75AgMBAAECggEAFUvnjwz8ZZQvFJRUxoebPsupK6GIcHU7wzlCgBepk3QRVAS25itP4fgbSQF7L4+6i+xkq7/V88wkEwR6qMuFsgnQbF7CwxXZNAe53RANr7y0uim/YzZrgeFoYA2/Zyo0b6nihxGsOCBXSQU2cH97V1zO5XfuF/4DPQA340GN2EKMSBLQBDnBwFyT9UUCIhKFozflFxUyEDQn4ZBdLZPznjJEGBSjONB/VQxd1bOWaotI2UFDcOHdmK0gBih5wYbHWh23a2yo7qx1bGqrL8XZny0GCYp3n2vYVZGzUqAeCQv/QOnsTYn0qia6vIOxiGp3TIbhJ4ugiKhGZB22f8HsgQKBgQDnkpMkOGmWQVRJIXFb31iu6S4kasjw5CuDVq6v6+EiGIMQJL2NPvgkdvDPr1wK3E1XJRo5Pti84iNzNeaTMM/+cQb8AeRpIPKNmUjZ1xvKlRMwXwY1hCF95472+xz4YYncmNjCsPDvEdLCO73xPxSgK6ucG4h7OQaRMQd59HrdCwKBgQC7nR0M6+tlzDNXg7J2EPvfx+216yrYtNKDMuiPp0lQyCLxtR6ya1DUzmBJd3Yp1pW0RfpZwLyiVQ29ig3UDOBOXDv3qX3W22pImwQ2uKCtg4yUAhvFhbzNJCZqKNRlcDbEE79Y2nljmv/n4OGvcgy/NcSXd6CuhvyzaANy2/yOiwKBgB9RLEMGugjO9vYY5rq0/spQ0KOuKVSiltvhOiiibsTsqbTiMxxJ+sb7qt97aKgzWOZDJ0O8oxUQRBkNngwj2s0fPgGQw/IPuZ26sCZ9t81y0bCF+VH9d4YObcAq/6T7k+hYZ2AVC9BZCbao26wnisOKhF/NPWzkrmWuSsOMc503AoGAa86VceZjJuTXH9O6ieOqiGXfL6kJvurxCJkJT/rlwzit88yK7iWCljZc1/qAePwonCWV/VsmSfWr5p1c4tvfTMftYZwQhpUglsYU/sjK88nizu4DPVZjLlI2jMwXeI6pubRLQOiR1m2r3Xe419Mmhf2EkTEZsRA6R3FegfLtRo8CgYALxmD4VnEt801MI0+SoyDYvYzu5CU7W2AxpPMtPhFD6QvXjFeCwSeF88gbk1jumn0F86bUnRXAuk0Wilna/yBEw7vc5DL3alO5uyggHah1pNTIu4FsAD6NCEvYz2RGa8Z7+KF+JvUF4vqRDzzO0ZJns+pterImWEHk6ZaJBkFwtA==","json","utf-8","MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqHpkJozekaXfdg49yjx2/w534FP979QcZI0wnEcN3Z48UCrHCMR9PzQvwICibfmTiOXYj5IjvrHFOFeUQZCmfQKBHH/IsINP1RduM3T/rssUdsnteBONfWF8u9V2TnY84U5jvxkwMj9nzFp8AqgHME4XRy89/4XBvVTw4vukRQRBU4Tg5nA36dJDdNtcgyHcOj5dZauEEdzefIRRxkCusPzReKgrGo7NJhxjp52j+lI0akxIIRlNOJP0mUrwWmPFp4wPUXm9ATxMudS8yghfcp7hV2maJ4r1Ojbp5vsZwGNT2/pr7eZu2o5xgwDKpUniIpqs1n3m9YXR1lySClRSzwIDAQAB","RSA2");
+    	AlipayMarketingCdpAdvertiseCreateRequest request = new AlipayMarketingCdpAdvertiseCreateRequest();
+		request.setBizContent("{" +
+		"    \"ad_code\":\"CDP_OPEN_MERCHANT\"," +
+		"    \"content_type\":\"URL\"," +
+		"    \"content\":\"https:xuecheng.ngrok.xiaomiqiu.cn\"," +
+		"    \"action_url\":\"http://m.alipay.com/J/dfdf\"," +
+		"    \"ad_rules\":\"{\"shop_id\":[\"12\"]}\"," +
+		"    \"height\":\"100\"," + 
+		"    \"start_time\":\"2019-05-24 12:12:12\"," +
+		"    \"end_time\":\"2019-10-24 12:12:12\"" +
+		"  }");
+		try {
+			AlipayMarketingCdpAdvertiseCreateResponse response = alipayClient.execute(request);
+			System.out.println(JSON.toJSON(response));
+		} catch (AlipayApiException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
 }

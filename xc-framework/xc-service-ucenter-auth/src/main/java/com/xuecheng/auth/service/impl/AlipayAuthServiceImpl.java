@@ -97,14 +97,13 @@ public class AlipayAuthServiceImpl implements AlipayAuthService {
 		}
 		AlipayUserInfoShareRequest request = new AlipayUserInfoShareRequest();
 		try {
-		    AlipayUserInfoShareResponse userinfoShareResponse = alipayClient.execute(request, authToken);
 		    //查询用户信息
 		    XcUser xcUser = loopQueryUserDetail(request,authToken);
 		    if(xcUser == null) {
 		    	ExceptionCast.cast(AuthCode.AUTH_QUERYUSERDETAILS_ERROE);
 		    }
 		    return xcUser;   
-		} catch (AlipayApiException e) {
+		} catch (Exception e) {
 		    //处理异常
 			ExceptionCast.cast(AuthCode.AUTH_QUERYUSERDETAILS_ERROE);
 		    e.printStackTrace();
@@ -154,8 +153,8 @@ public class AlipayAuthServiceImpl implements AlipayAuthService {
 	    xcUser.setSex(userinfoShareResponse.getGender());
 	    xcUser.setStatus(StringUtils.isEmpty(userinfoShareResponse.getUserStatus())?"":userinfoShareResponse.getUserStatus());
 	    xcUser.setUsername(userinfoShareResponse.getNickName());
-	    xcUser.setUserpic(userinfoShareResponse.getPersonPictures() == null&&userinfoShareResponse.getPersonPictures().size() <=0 ?"":userinfoShareResponse.getPersonPictures().get(0).toString());
-	    xcUser.setUtype(userinfoShareResponse.getUserType());
+	    xcUser.setUserpic((userinfoShareResponse.getPersonPictures()) == null?"":userinfoShareResponse.getPersonPictures().get(0)+"");
+	    xcUser.setUtype(StringUtils.isEmpty(userinfoShareResponse.getUserType())?"":userinfoShareResponse.getUserType());
 	    return xcUser;
 	}
 }

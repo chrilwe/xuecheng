@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xuecheng.ucenter.mapper.XcUserMapper">
+	<select id="findByUserName" parameterType="String"
+		resultType="com.xuecheng.framework.domain.ucenter.XcUser">
+		select
+		id,username,password,salt,name,utype,birthday,userpic,sex,email,phone,status,create_time
+		as createTime,update_time as updateTime from xc_user where
+		username=#{username}
+	</select>
+	<select id="findByPhone" parameterType="String"
+		resultType="com.xuecheng.framework.domain.ucenter.XcUser">
+		select
+		id,username,password,salt,name,utype,birthday,userpic,sex,email,phone,status,create_time
+		as createTime,update_time as updateTime from xc_user where
+		phone=#{phone}
+	</select>
+	<select id="findByEmail" parameterType="String"
+		resultType="com.xuecheng.framework.domain.ucenter.XcUser">
+		select
+		id,username,password,salt,name,utype,birthday,userpic,sex,email,phone,status,create_time
+		as createTime,update_time as updateTime from xc_user where
+		email=#{email}
+	</select>
+	<select id="findXcMenuByUserName" parameterType="String"
+		resultType="com.xuecheng.framework.domain.ucenter.XcMenu">
+		select * from xc_menu where id in (select menu_id from
+		xc_permission where role_id in (select role_id from xc_user_role where
+		user_id in(select id from xc_user where username=#{username})))
+	</select>
+	<select id="findByUserid" parameterType="String"
+		resultType="com.xuecheng.framework.domain.ucenter.XcUser">
+		select
+		id,username,password,salt,name,utype,birthday,userpic,sex,email,phone,status,create_time
+		as createTime,update_time as updateTime from xc_user where
+		id=#{userId}
+	</select>
+	<insert id="add" parameterType="com.xuecheng.framework.domain.ucenter.XcUser">
+		insert into
+		xc_user(id,username,password,salt,name,utype,birthday,userpic,sex,email,phone,status,create_time,update_time)
+		values(id=#{id},username=#{username},password=#{password},salt=#{salt},name=#{name},utype=#{utype},birthday=#{birthday},userpic=#{userpic},sex=#{sex},email=#{email},phone=#{phone},status=#{status},create_time=#{createTime},update_time=#{updateTime})
+	</insert>
+</mapper>

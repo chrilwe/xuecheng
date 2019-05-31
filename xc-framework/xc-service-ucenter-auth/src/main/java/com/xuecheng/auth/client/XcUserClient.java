@@ -21,12 +21,12 @@ public interface XcUserClient {
 	@GetMapping("/ucenter/getuserext")
 	public XcUserExt findByUserName(@RequestParam("username") String username);
 	
-	@GetMapping("/findbyid")
-	public XcUser findByUserId(String userId);
+	@GetMapping("/ucenter/findbyid")
+	public XcUser findByUserId(@RequestParam("userId")String userId);
 	
 	/**
 	 * 注册
 	 */
-	@PostMapping("/register")
+	@PostMapping("/ucenter/register")
 	public ResponseResult register(XcUser xcUser);
 }
